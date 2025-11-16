@@ -11,12 +11,13 @@ import MosaicSvg3 from './MosaicSvg3';
 import MosaicSvg4 from './MosaicSvg4';
 import MosaicSvg5 from './MosaicSvg5';
 
-
 type Props = {
   currentMosaicIndex: MosaicIndex;
   pieces: number;
-  history?: string[];   // agora é string[]
+  history?: string[];
   size?: number;
+  /** se false, não mostra o círculo de glow atrás */
+  showGlow?: boolean;
 };
 
 const MosaicRenderer: React.FC<Props> = ({
@@ -24,6 +25,7 @@ const MosaicRenderer: React.FC<Props> = ({
   pieces,
   history,
   size = 240,
+  showGlow = true,
 }) => {
   const totalSegments = MOSAICO_SEGMENTS[currentMosaicIndex];
   const segmentColors = getMosaicCoreColors(pieces, history, totalSegments);
@@ -33,30 +35,51 @@ const MosaicRenderer: React.FC<Props> = ({
     segmentColors?: string[];
   }>;
 
-switch (currentMosaicIndex) {
-  case 1:
-    MosaicComponent = MosaicSvgM;
-    break;
-  case 2:
-    MosaicComponent = MosaicSvg2;
-    break;
-  case 3:
-    MosaicComponent = MosaicSvg3;
-    break;
-  case 4:
-    MosaicComponent = MosaicSvg4;
-    break;
-  case 5:
-    MosaicComponent = MosaicSvg5;
-    break;
-  default:
-    MosaicComponent = MosaicSvgM;
-    break;
-}
+  switch (currentMosaicIndex) {
+    case 1:
+      MosaicComponent = MosaicSvgM;
+      break;
+    case 2:
+      MosaicComponent = MosaicSvg2;
+      break;
+    case 3:
+      MosaicComponent = MosaicSvg3;
+      break;
+    case 4:
+      MosaicComponent = MosaicSvg4;
+      break;
+    case 5:
+      MosaicComponent = MosaicSvg5;
+      break;
+    default:
+      MosaicComponent = MosaicSvgM;
+      break;
+  }
+
+  // wrapper e glow proporcionais ao size
+  const wrapperSize = size * 1.3;
+  const glowSize = size * 1.15;
 
   return (
-    <View style={styles.wrapper}>
-      <View style={styles.glow} />
+    <View
+      style={[
+        styles.wrapper,
+        { width: wrapperSize, height: wrapperSize },
+      ]}
+    >
+      {showGlow && (
+        <View
+          style={[
+            styles.glow,
+            {
+              width: glowSize,
+              height: glowSize,
+              borderRadius: glowSize / 2,
+            },
+          ]}
+        />
+      )}
+
       <MosaicComponent size={size} segmentColors={segmentColors} />
     </View>
   );
@@ -69,9 +92,6 @@ const styles = StyleSheet.create({
   },
   glow: {
     position: 'absolute',
-    width: 280,
-    height: 280,
-    borderRadius: 140,
     backgroundColor: 'rgba(235,255,150,0.18)',
     zIndex: -1,
   },
