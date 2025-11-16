@@ -13,7 +13,7 @@ import MosaicRenderer from '../components/MosaicRenderer';
 import { MOSAICO_SEGMENTS, MosaicIndex } from '../utils/mosaicConfig';
 
 const ProfileScreen: React.FC = () => {
-  const navigation = useNavigation<any>();
+const navigation = useNavigation<any>();
   const { user } = useUser();
 
   const currentIndex = user.currentMosaicIndex as MosaicIndex;
@@ -22,6 +22,12 @@ const ProfileScreen: React.FC = () => {
   const totalSegments = MOSAICO_SEGMENTS[currentIndex];
 
   const mosaicBadges = user.mosaicBadges ?? [];
+
+  // quantidade total de mosaicos disponíveis
+  const totalMosaics = Object.keys(MOSAICO_SEGMENTS).length;
+
+  // true se o usuário já concluiu todos
+  const isMosaicMaster = mosaicBadges.length >= totalMosaics;
 
   return (
     <ScrollView style={styles.container}>
@@ -40,11 +46,28 @@ const ProfileScreen: React.FC = () => {
         </View>
       </View>
 
+      {isMosaicMaster && (
+        <View style={styles.masterBanner}>
+          <Text style={styles.masterTitle}>Mestre do Mosaico 🧠✨</Text>
+          <Text style={styles.masterSubtitle}>
+            Você concluiu todos os mosaicos principais. Seu perfil está no nível mestre.
+            Continue explorando trilhas para se manter afiado.
+          </Text>
+        </View>
+      )}
+
       {/* Card principal com preview do mosaico */}
       <TouchableOpacity
         style={styles.mosaicCard}
         activeOpacity={0.85}
-        onPress={() => navigation.navigate('MosaicScreen')}
+        onPress={() => {
+          const parent = navigation.getParent?.();
+          if (parent) {
+            parent.navigate('Mosaic');
+          } else {
+            navigation.navigate('Mosaic');
+          }
+        }}
       >
         <Text style={styles.cardTitle}>Mosaico atual</Text>
         <Text style={styles.cardSubtitle}>
@@ -120,7 +143,7 @@ const ProfileScreen: React.FC = () => {
             {mosaicBadges.map((badge) => {
               const badgeHistory = Array.isArray(badge.history)
                 ? badge.history
-                : []; // 👈 garante array
+                : [];
               const piecesCount = badgeHistory.length;
 
               return (
@@ -131,9 +154,7 @@ const ProfileScreen: React.FC = () => {
                     history={badgeHistory}
                     size={80}
                   />
-                  <Text style={styles.badgeLabel}>
-                    Mosaico {badge.id}
-                  </Text>
+                  <Text style={styles.badgeLabel}>Mosaico {badge.id}</Text>
                   <Text style={styles.badgeDate}>{badge.completedAt}</Text>
                 </View>
               );
@@ -158,7 +179,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 24,
+    marginBottom: 16,
   },
   greeting: {
     color: '#F5F5F5',
@@ -187,6 +208,22 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
   },
+
+  /* novo card de mestre */
+  masterCard: {
+    backgroundColor: '#454331',
+    borderRadius: 18,
+    padding: 14,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#E6D98A55',
+  },
+  masterText: {
+    color: '#E0E0E0',
+    fontSize: 13,
+    marginTop: 4,
+  },
+
   mosaicCard: {
     backgroundColor: '#3E3C30',
     borderRadius: 20,
@@ -317,6 +354,26 @@ const styles = StyleSheet.create({
     color: '#B0BEC5',
     fontSize: 10,
     marginTop: 2,
+  },
+
+    masterBanner: {
+    backgroundColor: '#4DB6AC22',
+    borderRadius: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#4DB6AC55',
+  },
+  masterTitle: {
+    color: '#A3E6D5',
+    fontSize: 15,
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+  masterSubtitle: {
+    color: '#E0E0E0',
+    fontSize: 13,
   },
 });
 

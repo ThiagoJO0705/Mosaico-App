@@ -8,6 +8,8 @@ import { getMosaicCoreColors } from '../utils/mosaicState';
 import MosaicSvgM from './MosaicSvgM';
 import MosaicSvg2 from './MosaicSvg2';
 import MosaicSvg3 from './MosaicSvg3';
+import MosaicSvg4 from './MosaicSvg4';
+import MosaicSvg5 from './MosaicSvg5';
 
 
 type Props = {
@@ -40,6 +42,12 @@ switch (currentMosaicIndex) {
     break;
   case 3:
     MosaicComponent = MosaicSvg3;
+    break;
+  case 4:
+    MosaicComponent = MosaicSvg4;
+    break;
+  case 5:
+    MosaicComponent = MosaicSvg5;
     break;
   default:
     MosaicComponent = MosaicSvgM;
