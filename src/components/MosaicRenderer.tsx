@@ -5,8 +5,10 @@ import { View, StyleSheet } from 'react-native';
 import { MOSAICO_SEGMENTS, MosaicIndex } from '../utils/mosaicConfig';
 import { getMosaicCoreColors } from '../utils/mosaicState';
 
-import MosaicSvgM from './MosaicSvgM';   // Mosaico 1
-import MosaicSvg2 from './MosaicSvg2';   // Mosaico 2
+import MosaicSvgM from './MosaicSvgM';
+import MosaicSvg2 from './MosaicSvg2';
+import MosaicSvg3 from './MosaicSvg3';
+
 
 type Props = {
   currentMosaicIndex: MosaicIndex;
@@ -29,17 +31,20 @@ const MosaicRenderer: React.FC<Props> = ({
     segmentColors?: string[];
   }>;
 
-  switch (currentMosaicIndex) {
-    case 1:
-      MosaicComponent = MosaicSvgM;
-      break;
-    case 2:
-      MosaicComponent = MosaicSvg2;
-      break;
-    default:
-      MosaicComponent = MosaicSvgM;
-      break;
-  }
+switch (currentMosaicIndex) {
+  case 1:
+    MosaicComponent = MosaicSvgM;
+    break;
+  case 2:
+    MosaicComponent = MosaicSvg2;
+    break;
+  case 3:
+    MosaicComponent = MosaicSvg3;
+    break;
+  default:
+    MosaicComponent = MosaicSvgM;
+    break;
+}
 
   return (
     <View style={styles.wrapper}>

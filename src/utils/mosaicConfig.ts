@@ -1,11 +1,10 @@
 // src/utils/mosaicConfig.ts
-
 export const MOSAICO_SEGMENTS = {
-  1: 9,   // Mosaico 1 — SVG "M"
-  2: 26,  // Mosaico 2 — Escudo
-  3: 40,
+  1: 9,    // M
+  2: 21,   // Escudo
+  3: 54,   // Este mosaico 3 novo
   4: 60,
   5: 80,
 } as const;
 
-export type MosaicIndex = keyof typeof MOSAICO_SEGMENTS; // 1 | 2 | 3 | 4 | 5
+export type MosaicIndex = keyof typeof MOSAICO_SEGMENTS;
