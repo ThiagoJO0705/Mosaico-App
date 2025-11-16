@@ -1,4 +1,3 @@
-// src/screens/ProfileScreen.tsx
 import React from 'react';
 import {
   View,
@@ -9,25 +8,26 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useUser } from '../context/UserContext';
-import MosaicRenderer from '../components/MosaicRenderer';
 import { MOSAICO_SEGMENTS, MosaicIndex } from '../utils/mosaicConfig';
 
 const ProfileScreen: React.FC = () => {
-const navigation = useNavigation<any>();
+  const navigation = useNavigation<any>();
   const { user } = useUser();
 
   const currentIndex = user.currentMosaicIndex as MosaicIndex;
-  const currentPieces = user.currentMosaicPieces;
-  const currentHistory = user.currentMosaicHistory ?? [];
-  const totalSegments = MOSAICO_SEGMENTS[currentIndex];
-
+  const currentPieces = user.currentMosaicPieces ?? 0;
   const mosaicBadges = user.mosaicBadges ?? [];
 
-  // quantidade total de mosaicos disponíveis
   const totalMosaics = Object.keys(MOSAICO_SEGMENTS).length;
+  const completedMosaics = mosaicBadges.length;
+  const allMosaicsCompleted = completedMosaics >= totalMosaics;
 
-  // true se o usuário já concluiu todos
-  const isMosaicMaster = mosaicBadges.length >= totalMosaics;
+  const totalSegmentsCurrent =
+    currentIndex != null ? MOSAICO_SEGMENTS[currentIndex] ?? 0 : 0;
+  const remainingPieces =
+    totalSegmentsCurrent > 0
+      ? Math.max(totalSegmentsCurrent - currentPieces, 0)
+      : 0;
 
   return (
     <ScrollView style={styles.container}>
@@ -46,63 +46,61 @@ const navigation = useNavigation<any>();
         </View>
       </View>
 
-      {isMosaicMaster && (
-        <View style={styles.masterBanner}>
-          <Text style={styles.masterTitle}>Mestre do Mosaico 🧠✨</Text>
-          <Text style={styles.masterSubtitle}>
-            Você concluiu todos os mosaicos principais. Seu perfil está no nível mestre.
-            Continue explorando trilhas para se manter afiado.
-          </Text>
-        </View>
-      )}
-
-      {/* Card principal com preview do mosaico */}
+      {/* Card principal com RESUMO do mosaico */}
       <TouchableOpacity
         style={styles.mosaicCard}
         activeOpacity={0.85}
-        onPress={() => {
-          const parent = navigation.getParent?.();
-          if (parent) {
-            parent.navigate('Mosaic');
-          } else {
-            navigation.navigate('Mosaic');
-          }
-        }}
+        onPress={() => navigation.navigate('Mosaic')}
       >
-        <Text style={styles.cardTitle}>Mosaico atual</Text>
-        <Text style={styles.cardSubtitle}>
-          Toque para ver sua jornada completa
-        </Text>
-
-        <View style={styles.mosaicPreviewWrapper}>
-          <MosaicRenderer
-            currentMosaicIndex={currentIndex}
-            pieces={currentPieces}
-            history={currentHistory}
-            size={180}
-          />
-        </View>
-
-        <View style={styles.progressRow}>
-          <Text style={styles.progressText}>
-            {currentPieces}/{totalSegments} peças concluídas
-          </Text>
-          <Text style={styles.progressHint}>ver detalhes ⟶</Text>
-        </View>
-
-        <View style={styles.streakRow}>
-          <View style={styles.streakPill}>
-            <Text style={styles.streakEmoji}>🔥</Text>
-            <Text style={styles.streakText}>
-              {user.streakDays} dias de jornada
+        {!allMosaicsCompleted ? (
+          <>
+            <Text style={styles.cardTitle}>Seu mosaico</Text>
+            <Text style={styles.cardSubtitle}>
+              Toque para ver a jornada visual completa.
             </Text>
-          </View>
 
-          <View style={styles.xpPill}>
-            <Text style={styles.xpLabel}>XP</Text>
-            <Text style={styles.xpValue}>{user.xp}</Text>
-          </View>
-        </View>
+            <View style={styles.mosaicSummaryContent}>
+              <Text style={styles.mosaicSummaryLine}>
+                Mosaico {currentIndex} de {totalMosaics}
+              </Text>
+              <Text style={styles.mosaicSummaryLine}>
+                {currentPieces}/{totalSegmentsCurrent} peças concluídas
+              </Text>
+              <Text style={styles.mosaicSummaryHint}>
+                Faltam{' '}
+                <Text style={{ fontWeight: '700' }}>
+                  {remainingPieces}
+                </Text>{' '}
+                peças para concluir este mosaico.
+              </Text>
+            </View>
+
+            <View style={styles.mosaicFooterRow}>
+              <Text style={styles.progressHint}>ver detalhes ⟶</Text>
+            </View>
+          </>
+        ) : (
+          <>
+            <Text style={styles.cardTitle}>Mosaico completo</Text>
+            <Text style={styles.cardSubtitle}>
+              Você concluiu todos os mosaicos disponíveis. 🎉
+            </Text>
+
+            <View style={styles.mosaicSummaryContent}>
+              <Text style={styles.mosaicSummaryLine}>
+                {completedMosaics} de {totalMosaics} mosaicos concluídos.
+              </Text>
+              <Text style={styles.mosaicSummaryHint}>
+                Parabéns! Você se tornou um verdadeiro{' '}
+                <Text style={{ fontWeight: '700' }}>Mestre do Mosaico</Text>.
+              </Text>
+            </View>
+
+            <View style={styles.mosaicFooterRow}>
+              <Text style={styles.progressHint}>ver conquistas ⟶</Text>
+            </View>
+          </>
+        )}
       </TouchableOpacity>
 
       {/* Seção: progresso geral */}
@@ -134,34 +132,7 @@ const navigation = useNavigation<any>();
         </View>
       </View>
 
-      {/* Seção: mosaicos concluídos */}
-      {mosaicBadges.length > 0 && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Mosaicos concluídos</Text>
-
-          <View style={styles.badgesRow}>
-            {mosaicBadges.map((badge) => {
-              const badgeHistory = Array.isArray(badge.history)
-                ? badge.history
-                : [];
-              const piecesCount = badgeHistory.length;
-
-              return (
-                <View style={styles.badgeItem} key={badge.id}>
-                  <MosaicRenderer
-                    currentMosaicIndex={badge.id}
-                    pieces={piecesCount}
-                    history={badgeHistory}
-                    size={80}
-                  />
-                  <Text style={styles.badgeLabel}>Mosaico {badge.id}</Text>
-                  <Text style={styles.badgeDate}>{badge.completedAt}</Text>
-                </View>
-              );
-            })}
-          </View>
-        </View>
-      )}
+      {/* NADA de mosaicos concluídos aqui – fica só na MosaicScreen */}
 
       <View style={{ height: 32 }} />
     </ScrollView>
@@ -179,7 +150,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 16,
+    marginBottom: 24,
   },
   greeting: {
     color: '#F5F5F5',
@@ -208,22 +179,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
   },
-
-  /* novo card de mestre */
-  masterCard: {
-    backgroundColor: '#454331',
-    borderRadius: 18,
-    padding: 14,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: '#E6D98A55',
-  },
-  masterText: {
-    color: '#E0E0E0',
-    fontSize: 13,
-    marginTop: 4,
-  },
-
   mosaicCard: {
     backgroundColor: '#3E3C30',
     borderRadius: 20,
@@ -240,66 +195,28 @@ const styles = StyleSheet.create({
     fontSize: 13,
     marginTop: 4,
   },
-  mosaicPreviewWrapper: {
+  mosaicSummaryContent: {
     marginTop: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
-  progressRow: {
-    marginTop: 12,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
-  },
-  progressText: {
+  mosaicSummaryLine: {
     color: '#A3E6D5',
     fontSize: 14,
     fontWeight: '500',
+    marginBottom: 2,
+  },
+  mosaicSummaryHint: {
+    color: '#CFD8DC',
+    fontSize: 12,
+    marginTop: 4,
+  },
+  mosaicFooterRow: {
+    marginTop: 10,
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
   },
   progressHint: {
     color: '#D1C4E9',
     fontSize: 12,
-  },
-  streakRow: {
-    marginTop: 12,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  streakPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#2C2B21',
-    borderRadius: 999,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-  },
-  streakEmoji: {
-    fontSize: 14,
-    marginRight: 6,
-  },
-  streakText: {
-    color: '#F5F5F5',
-    fontSize: 13,
-  },
-  xpPill: {
-    backgroundColor: '#4DB6AC',
-    borderRadius: 999,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  xpLabel: {
-    color: '#2C2B21',
-    fontSize: 11,
-    fontWeight: '600',
-    marginRight: 4,
-  },
-  xpValue: {
-    color: '#2C2B21',
-    fontSize: 14,
-    fontWeight: '700',
   },
   section: {
     marginBottom: 24,
@@ -331,49 +248,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
     marginTop: 4,
-  },
-  badgesRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
-  },
-  badgeItem: {
-    width: 110,
-    backgroundColor: '#3E3C30',
-    borderRadius: 16,
-    padding: 8,
-    alignItems: 'center',
-  },
-  badgeLabel: {
-    color: '#F5F5F5',
-    fontSize: 12,
-    marginTop: 4,
-    fontWeight: '500',
-  },
-  badgeDate: {
-    color: '#B0BEC5',
-    fontSize: 10,
-    marginTop: 2,
-  },
-
-    masterBanner: {
-    backgroundColor: '#4DB6AC22',
-    borderRadius: 16,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: '#4DB6AC55',
-  },
-  masterTitle: {
-    color: '#A3E6D5',
-    fontSize: 15,
-    fontWeight: '700',
-    marginBottom: 4,
-  },
-  masterSubtitle: {
-    color: '#E0E0E0',
-    fontSize: 13,
   },
 });
 

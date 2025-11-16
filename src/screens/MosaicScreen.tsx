@@ -1,37 +1,38 @@
-// src/screens/MosaicScreen.tsx
-
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { useUser } from '../context/UserContext';
 import MosaicRenderer from '../components/MosaicRenderer';
 import { MOSAICO_SEGMENTS, MosaicIndex } from '../utils/mosaicConfig';
 
-// Mapeia CADA COR para o NOME da habilidade que você quiser exibir
+// Mapeia cada COR para o nome da habilidade
 const COLOR_TO_SKILL_LABEL: Record<string, string> = {
   '#FFD54F': 'ESG',
   '#D1C4E9': 'IA',
   '#4DB6AC': 'Tech',
-  // adicione mais se tiver outras cores:
+  // adicione mais se quiser:
   // '#FF8A65': 'Soft Skills',
-  // '#BA68C8': 'Liderança',
 };
+
+// ===================================================================
 
 const MosaicScreen: React.FC = () => {
   const { user } = useUser();
 
   const currentIndex = user.currentMosaicIndex as MosaicIndex;
-  const currentPieces = user.currentMosaicPieces;
+  const currentPieces = user.currentMosaicPieces ?? 0;
   const currentHistory = user.currentMosaicHistory ?? [];
-  const totalSegments = MOSAICO_SEGMENTS[currentIndex];
+  const totalSegmentsCurrent =
+    currentIndex != null ? MOSAICO_SEGMENTS[currentIndex] ?? 0 : 0;
 
   const mosaicBadges = user.mosaicBadges ?? [];
 
-  // ====== CÁLCULO DINÂMICO PELA COR DAS PEÇAS ======
+  const totalMosaics = Object.keys(MOSAICO_SEGMENTS).length;
+  const completedMosaics = mosaicBadges.length;
+  const allMosaicsCompleted = completedMosaics >= totalMosaics;
 
-  // Junta TODAS as cores usadas nas peças:
+  // ====== CÁLCULO DINÂMICO PELAS CORES DAS PEÇAS (todas) ======
   const allColors: string[] = [];
 
-  // Mosaico atual
   if (Array.isArray(currentHistory)) {
     currentHistory.forEach((c) => {
       if (typeof c === 'string') {
@@ -40,7 +41,6 @@ const MosaicScreen: React.FC = () => {
     });
   }
 
-  // Mosaicos concluídos
   mosaicBadges.forEach((badge) => {
     const hist = Array.isArray(badge.history) ? badge.history : [];
     hist.forEach((c) => {
@@ -50,10 +50,9 @@ const MosaicScreen: React.FC = () => {
     });
   });
 
-  // Conta quantas vezes cada cor aparece
   const colorCounts: Record<string, number> = {};
   allColors.forEach((raw) => {
-    const key = raw.trim().toUpperCase(); // normaliza hex
+    const key = raw.trim().toUpperCase();
     if (!key) return;
     colorCounts[key] = (colorCounts[key] || 0) + 1;
   });
@@ -63,7 +62,6 @@ const MosaicScreen: React.FC = () => {
   );
   const totalPiecesFromColors =
     colorEntries.reduce((sum, [, value]) => sum + value, 0) || 0;
-
   const hasSkills = totalPiecesFromColors > 0;
 
   return (
@@ -73,32 +71,53 @@ const MosaicScreen: React.FC = () => {
         Veja sua jornada visual de habilidades e conquistas.
       </Text>
 
-      {/* MOSAICO ATUAL */}
-      <View style={styles.currentCard}>
-        <Text style={styles.cardTitle}>Mosaico {currentIndex}</Text>
-        <Text style={styles.cardSubtitle}>
-          Capítulo atual da sua trajetória.
-        </Text>
+      {/* SE TODOS MOSAICOS CONCLUÍDOS → mensagem de mestre */}
+      {allMosaicsCompleted ? (
+        <View style={styles.currentCard}>
+          <Text style={styles.cardTitle}>Você é um Mestre do Mosaico 🔰</Text>
+          <Text style={styles.cardSubtitle}>
+            Todos os mosaicos disponíveis foram concluídos. Continue estudando
+            para manter suas habilidades afiadas e aguarde novos desafios!
+          </Text>
 
-        <View style={styles.mosaicWrapper}>
-          <MosaicRenderer
-            currentMosaicIndex={currentIndex}
-            pieces={currentPieces}
-            history={currentHistory}
-            size={260}
-          />
+          <View style={{ marginTop: 12 }}>
+            <Text style={styles.masterLine}>
+              Mosaicos concluídos: {completedMosaics}/{totalMosaics}
+            </Text>
+            <Text style={styles.masterHint}>
+              Cada peça representa uma habilidade conquistada ao longo da sua
+              jornada.
+            </Text>
+          </View>
         </View>
+      ) : (
+        // CASO AINDA HAJA MOSAICO EM ANDAMENTO
+        <View style={styles.currentCard}>
+          <Text style={styles.cardTitle}>Mosaico {currentIndex}</Text>
+          <Text style={styles.cardSubtitle}>
+            Capítulo atual da sua trajetória.
+          </Text>
 
-        <Text style={styles.progressText}>
-          {currentPieces}/{totalSegments} peças concluídas
-        </Text>
-        <Text style={styles.progressHint}>
-          Complete todas as peças para transformar este mosaico em um badge
-          permanente.
-        </Text>
-      </View>
+          <View style={styles.mosaicWrapper}>
+            <MosaicRenderer
+              currentMosaicIndex={currentIndex}
+              pieces={currentPieces}
+              history={currentHistory}
+              size={260}
+            />
+          </View>
 
-      {/* HABILIDADES EM DESTAQUE (por cor / área) */}
+          <Text style={styles.progressText}>
+            {currentPieces}/{totalSegmentsCurrent} peças concluídas
+          </Text>
+          <Text style={styles.progressHint}>
+            Complete todas as peças para transformar este mosaico em um badge
+            permanente.
+          </Text>
+        </View>
+      )}
+
+      {/* HABILIDADES EM DESTAQUE */}
       <View style={styles.skillsCard}>
         <Text style={styles.cardTitle}>Habilidades em destaque</Text>
         <Text style={styles.cardSubtitle}>
@@ -114,27 +133,22 @@ const MosaicScreen: React.FC = () => {
 
         {hasSkills && (
           <View style={styles.skillBarContainer}>
-            {/* Barra agregada */}
             <View style={styles.skillBarBackground}>
               {colorEntries.map(([colorHex, value]) => {
                 if (value <= 0) return null;
-                const hex = colorHex; // já vem em maiúsculo
+                const hex = colorHex;
                 return (
                   <View
                     key={hex}
                     style={[
                       styles.skillBarSegment,
-                      {
-                        flex: value,
-                        backgroundColor: hex,
-                      },
+                      { flex: value, backgroundColor: hex },
                     ]}
                   />
                 );
               })}
             </View>
 
-            {/* Legenda */}
             <View style={styles.skillLegend}>
               {colorEntries.map(([colorHex, value]) => {
                 if (value <= 0) return null;
@@ -144,7 +158,6 @@ const MosaicScreen: React.FC = () => {
                 const pct = Math.round(
                   (value / totalPiecesFromColors) * 100,
                 );
-
                 return (
                   <View key={hex} style={styles.skillLegendItem}>
                     <View
@@ -225,6 +238,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
     marginBottom: 16,
   },
+
   currentCard: {
     backgroundColor: '#3E3C30',
     borderRadius: 20,
@@ -257,8 +271,18 @@ const styles = StyleSheet.create({
     color: '#B0BEC5',
     fontSize: 12,
   },
+  masterLine: {
+    color: '#A3E6D5',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  masterHint: {
+    color: '#CFD8DC',
+    fontSize: 12,
+    marginTop: 4,
+  },
 
-  // ===== HABILIDADES =====
+  // Habilidades
   skillsCard: {
     backgroundColor: '#3E3C30',
     borderRadius: 20,
