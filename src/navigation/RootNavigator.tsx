@@ -1,13 +1,24 @@
 import React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
-import AuthStackNavigator from './AuthStack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-const RootNavigator: React.FC = () => {
-  return (
-    <NavigationContainer>
-      <AuthStackNavigator />
-    </NavigationContainer>
-  );
+import TabsNavigator from './TabsNavigator';
+import MosaicScreen from '../screens/MosaicScreen';
+
+export type RootStackParamList = {
+  Tabs: undefined;
+  Mosaic: undefined;
 };
 
-export default RootNavigator;
+const Stack = createNativeStackNavigator<RootStackParamList>();
+
+export default function RootNavigator() {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      {/* MENU */}
+      <Stack.Screen name="Tabs" component={TabsNavigator} />
+
+      {/* TELA FULLSCREEN */}
+      <Stack.Screen name="Mosaic" component={MosaicScreen} />
+    </Stack.Navigator>
+  );
+}

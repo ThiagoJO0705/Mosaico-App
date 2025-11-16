@@ -1,134 +1,182 @@
 // src/context/UserContext.tsx
+import React, { createContext, useContext, useState } from 'react';
+import { MOSAICO_SEGMENTS, MosaicIndex } from '../utils/mosaicConfig';
+import { TRACKS } from '../data/tracks'; // 👈 adiciona isso
 
-import React, {
-  createContext,
-  useContext,
-  useState,
-  ReactNode,
-  useCallback,
-} from 'react';
-import { BadgeId, UserGamification, AreaId } from '../types/models';
-import { TRACKS } from '../data/tracks';
-
-type UserContextValue = {
-  user: UserGamification;
-  completeLesson: (trackId: string) => void;
-  registerDailyLogin: () => void;
+export type MosaicBadge = {
+  id: MosaicIndex;
+  completedAt: string;
+  history: string[]; // 🔹 novo: histórico de cores daquele mosaico
 };
 
-const UserContext = createContext<UserContextValue | undefined>(undefined);
+export type TrackProgress = {
+  completedLessons: number;
+};
 
-const initialUser: UserGamification = {
-  name: 'Aluno MOSAICO',
+export type UserData = {
+  uid: string;
+  name: string;
+
+  level: number;
+  xp: number;
+  streakDays: number;
+
+  activeTracksCount: number;
+  lessonsCompleted: number;
+  areasExplored: number;
+
+  progress: number;
+  trackProgress: Record<string, TrackProgress>;
+
+  currentMosaicIndex: MosaicIndex;
+  currentMosaicPieces: number;
+  currentMosaicHistory: string[];
+
+  mosaicBadges: MosaicBadge[];
+};
+
+type UserContextType = {
+  user: UserData;
+  loading: boolean;
+
+  addPieceToMosaic: (color?: string) => void;
+  resetMosaic: () => void;
+  completeLesson: (trackId: string) => void;
+
+  syncFromFirebase?: (data: Partial<UserData>) => void;
+};
+
+// 🎨 mapa de cores por trilha — ajuste os IDs para bater com o seu TRACKS
+const getColorForTrack = (trackId: string): string => {
+  const track = TRACKS.find((t) => t.id === trackId);
+  // se achar a trilha, usa a cor dela; se não, cai num fallback
+  return track?.color ?? '#A3E6D5';
+};
+
+const initialUser: UserData = {
+  uid: '123',
+  name: 'Fabio',
+
   level: 1,
   xp: 0,
-  pieces: 0,
-  piecesHistory: [],
-  streak: 1,
-  badges: [],
-  progress: {},
+  streakDays: 1,
+
+  activeTracksCount: 0,
+  lessonsCompleted: 0,
+  areasExplored: 0,
+
+  progress: 0,
+  trackProgress: {},
+
+  currentMosaicIndex: 1,
+  currentMosaicPieces: 0,
+  currentMosaicHistory: [],
+
+  mosaicBadges: [],
 };
 
-type Props = {
-  children: ReactNode;
-};
+const UserContext = createContext<UserContextType>({
+  user: initialUser,
+  loading: false,
+  addPieceToMosaic: () => {},
+  resetMosaic: () => {},
+  completeLesson: () => {},
+});
 
-export const UserProvider: React.FC<Props> = ({ children }) => {
-  const [user, setUser] = useState<UserGamification>(initialUser);
+export const UserProvider = ({ children }: { children: React.ReactNode }) => {
+  const [user, setUser] = useState<UserData>(initialUser);
+  const [loading] = useState(false);
 
-  const addBadge = (userState: UserGamification, newBadge: BadgeId): BadgeId[] => {
-    if (userState.badges.includes(newBadge)) return userState.badges;
-    return [...userState.badges, newBadge];
+  // 🔹 Ganhar uma peça do mosaico
+  const addPieceToMosaic = (color: string = '#A3E6D5') => {
+    setUser((prev) => {
+      const totalNeeded = MOSAICO_SEGMENTS[prev.currentMosaicIndex];
+      const newPieces = prev.currentMosaicPieces + 1;
+      const newHistory = [...prev.currentMosaicHistory, color];
+
+      let updated: UserData = {
+        ...prev,
+        currentMosaicPieces: newPieces,
+        currentMosaicHistory: newHistory,
+        xp: prev.xp + 10,
+        progress: Math.min(100, prev.progress + 3),
+      };
+
+      // completou o mosaico atual?
+      if (newPieces >= totalNeeded) {
+        const badge: MosaicBadge = {
+          id: prev.currentMosaicIndex,
+          completedAt: new Date().toLocaleDateString('pt-BR'),
+          history: newHistory, // 🔹 guarda as cores do mosaico completo
+        };
+
+        updated = {
+          ...updated,
+          mosaicBadges: [...prev.mosaicBadges, badge],
+          currentMosaicIndex: (prev.currentMosaicIndex + 1) as MosaicIndex,
+          currentMosaicPieces: 0,
+          currentMosaicHistory: [],
+          level: prev.level + 1,
+        };
+      }
+
+      return updated;
+    });
   };
 
-  const recalculateLevel = (xp: number): number => {
-    // regra simples: a cada 100 XP sobe de nível
-    return Math.floor(xp / 100) + 1;
+  const resetMosaic = () => {
+    setUser((prev) => ({
+      ...prev,
+      currentMosaicPieces: 0,
+      currentMosaicHistory: [],
+    }));
   };
 
+  // 🔹 Concluir 1 aula de uma trilha específica
   const completeLesson = (trackId: string) => {
+    // 1) update do progresso da trilha, aulas e progress geral
     setUser((prev) => {
-      const track = TRACKS.find((t) => t.id === trackId);
-      const area: AreaId = track?.area ?? 'Tech';
-
-      const prevProgress = prev.progress[trackId]?.completedLessons ?? 0;
-      const completedLessons = prevProgress + 1;
-
-      const updatedProgress = {
-        ...prev.progress,
-        [trackId]: { completedLessons },
+      const currentTrack = prev.trackProgress[trackId] ?? {
+        completedLessons: 0,
       };
+      const newCompleted = currentTrack.completedLessons + 1;
 
-      const gainedXp = 20;
-
-      // histórico de peças: adiciona a área no final do array
-      const newPiecesHistory = [...prev.piecesHistory, area];
-      const newTotalPieces = newPiecesHistory.length;
-
-      let newBadges = [...prev.badges];
-
-      if (newTotalPieces === 1) {
-        newBadges = addBadge(
-          { ...prev, badges: newBadges },
-          'first_trail',
-        );
-      }
-      if (newTotalPieces === 10) {
-        newBadges = addBadge(
-          { ...prev, badges: newBadges },
-          'pieces_10',
-        );
-      }
-      if (newTotalPieces === 50) {
-        newBadges = addBadge(
-          { ...prev, badges: newBadges },
-          'pieces_50',
-        );
-      }
-
-      const newXp = prev.xp + gainedXp;
-      const newLevel = recalculateLevel(newXp);
+      const newTrackProgress: Record<string, TrackProgress> = {
+        ...prev.trackProgress,
+        [trackId]: { completedLessons: newCompleted },
+      };
 
       return {
         ...prev,
-        xp: newXp,
-        pieces: newTotalPieces,
-        piecesHistory: newPiecesHistory,
-        level: newLevel,
-        progress: updatedProgress,
-        badges: newBadges,
+        trackProgress: newTrackProgress,
+        lessonsCompleted: prev.lessonsCompleted + 1,
+        progress: Math.min(100, prev.progress + 5),
       };
     });
+
+    // 2) dar a peça no mosaico com a cor da trilha
+    const color = getColorForTrack(trackId);
+    addPieceToMosaic(color);
   };
 
-  const registerDailyLogin = useCallback(() => {
-    setUser((prev) => {
-      const newStreak = prev.streak + 1;
-      let newBadges = [...prev.badges];
-
-      if (newStreak >= 3) {
-        newBadges = addBadge(prev, 'streak_3');
-      }
-
-      return {
-        ...prev,
-        streak: newStreak,
-        badges: newBadges,
-      };
-    });
-  }, []);
+  const syncFromFirebase = (data: Partial<UserData>) => {
+    setUser((prev) => ({ ...prev, ...data }));
+  };
 
   return (
-    <UserContext.Provider value={{ user, completeLesson, registerDailyLogin }}>
+    <UserContext.Provider
+      value={{
+        user,
+        loading,
+        addPieceToMosaic,
+        resetMosaic,
+        completeLesson,
+        syncFromFirebase,
+      }}
+    >
       {children}
     </UserContext.Provider>
   );
 };
 
-export const useUser = (): UserContextValue => {
-  const ctx = useContext(UserContext);
-  if (!ctx) {
-    throw new Error('useUser must be used within a UserProvider');
-  }
-  return ctx;
-};
+export const useUser = () => useContext(UserContext);

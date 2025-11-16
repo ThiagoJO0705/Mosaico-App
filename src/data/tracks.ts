@@ -1,28 +1,30 @@
-import { Track } from '../types/models';
+// src/data/tracks.ts
+
+export type Track = {
+  id: string;
+  title: string;
+  totalLessons: number;
+  color: string; // 🎨 cor da trilha para o mosaico
+};
 
 export const TRACKS: Track[] = [
   {
-    id: 'track-ia-intro',
-    title: 'Introdução à IA',
-    area: 'IA',
+    id: 'ia-basics',
+    title: 'Fundamentos de IA',
+    totalLessons: 8,
+    color: '#4DB6AC', // teal
+  },
+  {
+    id: 'softskills',
+    title: 'Soft Skills para o Futuro',
     totalLessons: 6,
+    color: '#D1C4E9', // lilás
   },
   {
-    id: 'track-softskills-com',
-    title: 'Comunicação Profissional',
-    area: 'Soft Skills',
-    totalLessons: 4,
-  },
-  {
-    id: 'track-esg-basics',
-    title: 'Fundamentos de ESG',
-    area: 'ESG',
+    id: 'esg',
+    title: 'ESG e Sustentabilidade',
     totalLessons: 5,
+    color: '#FFD54F', // âmbar
   },
-  {
-    id: 'track-tech-basics',
-    title: 'Lógica & Pensamento Computacional',
-    area: 'Tech',
-    totalLessons: 5,
-  },
+  //adicione aqui as demais trilhas com suas cores
 ];

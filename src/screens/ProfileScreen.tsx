@@ -1,162 +1,322 @@
 // src/screens/ProfileScreen.tsx
-
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+} from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { useUser } from '../context/UserContext';
-import MosaicGrid from '../components/MosaicGrid';
-import { AreaId } from '../types/models';
+import MosaicRenderer from '../components/MosaicRenderer';
+import { MOSAICO_SEGMENTS, MosaicIndex } from '../utils/mosaicConfig';
 
 const ProfileScreen: React.FC = () => {
+  const navigation = useNavigation<any>();
   const { user } = useUser();
 
+  const currentIndex = user.currentMosaicIndex as MosaicIndex;
+  const currentPieces = user.currentMosaicPieces;
+  const currentHistory = user.currentMosaicHistory ?? [];
+  const totalSegments = MOSAICO_SEGMENTS[currentIndex];
+
+  const mosaicBadges = user.mosaicBadges ?? [];
+
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Seu perfil MOSAICO</Text>
-      <Text style={styles.subtitle}>
-        Cada habilidade que você conquista vira uma peça no seu mosaico.
-      </Text>
-
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>{user.name}</Text>
-        <Text style={styles.cardText}>Nível {user.level}</Text>
-        <Text style={styles.cardText}>{user.xp} XP acumulados</Text>
-        <Text style={styles.cardText}>🔥 Streak: {user.streak} dias seguidos</Text>
-      </View>
-
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Seu MOSAICO de habilidades</Text>
-        <Text style={styles.cardText}>Peças totais: {user.pieces}</Text>
-
-        <View style={{ marginTop: 12 }}>
-          <MosaicGrid history={user.piecesHistory} />
-        </View>
-
-        <View style={styles.legendContainer}>
-          {(['IA', 'Soft Skills', 'ESG', 'Tech'] as AreaId[]).map((area) => (
-            <View key={area} style={styles.legendItem}>
-              <View
-                style={[
-                  styles.legendColor,
-                  { backgroundColor: getColorByArea(area) },
-                ]}
-              />
-              <Text style={styles.legendText}>{area}</Text>
-            </View>
-          ))}
-        </View>
-      </View>
-
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Badges conquistadas</Text>
-        {user.badges.length === 0 ? (
-          <Text style={styles.cardText}>
-            Você ainda não tem badges. Bora começar uma trilha! 🚀
+    <ScrollView style={styles.container}>
+      {/* Cabeçalho */}
+      <View style={styles.header}>
+        <View>
+          <Text style={styles.greeting}>Olá, {user.name} 👋</Text>
+          <Text style={styles.subtitle}>
+            Cada habilidade é uma peça. Continue montando seu MOSAICO.
           </Text>
-        ) : (
-          user.badges.map((badge) => (
-            <Text key={badge} style={styles.badgeItem}>
-              • {translateBadge(badge)}
-            </Text>
-          ))
-        )}
+        </View>
+
+        <View style={styles.levelPill}>
+          <Text style={styles.levelLabel}>Nível</Text>
+          <Text style={styles.levelValue}>{user.level}</Text>
+        </View>
       </View>
+
+      {/* Card principal com preview do mosaico */}
+      <TouchableOpacity
+        style={styles.mosaicCard}
+        activeOpacity={0.85}
+        onPress={() => navigation.navigate('MosaicScreen')}
+      >
+        <Text style={styles.cardTitle}>Mosaico atual</Text>
+        <Text style={styles.cardSubtitle}>
+          Toque para ver sua jornada completa
+        </Text>
+
+        <View style={styles.mosaicPreviewWrapper}>
+          <MosaicRenderer
+            currentMosaicIndex={currentIndex}
+            pieces={currentPieces}
+            history={currentHistory}
+            size={180}
+          />
+        </View>
+
+        <View style={styles.progressRow}>
+          <Text style={styles.progressText}>
+            {currentPieces}/{totalSegments} peças concluídas
+          </Text>
+          <Text style={styles.progressHint}>ver detalhes ⟶</Text>
+        </View>
+
+        <View style={styles.streakRow}>
+          <View style={styles.streakPill}>
+            <Text style={styles.streakEmoji}>🔥</Text>
+            <Text style={styles.streakText}>
+              {user.streakDays} dias de jornada
+            </Text>
+          </View>
+
+          <View style={styles.xpPill}>
+            <Text style={styles.xpLabel}>XP</Text>
+            <Text style={styles.xpValue}>{user.xp}</Text>
+          </View>
+        </View>
+      </TouchableOpacity>
+
+      {/* Seção: progresso geral */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Seu progresso</Text>
+
+        <View style={styles.statsRow}>
+          <View style={styles.statCard}>
+            <Text style={styles.statLabel}>Trilhas ativas</Text>
+            <Text style={styles.statValue}>{user.activeTracksCount}</Text>
+          </View>
+
+          <View style={styles.statCard}>
+            <Text style={styles.statLabel}>Aulas concluídas</Text>
+            <Text style={styles.statValue}>{user.lessonsCompleted}</Text>
+          </View>
+        </View>
+
+        <View style={styles.statsRow}>
+          <View style={styles.statCard}>
+            <Text style={styles.statLabel}>Áreas exploradas</Text>
+            <Text style={styles.statValue}>{user.areasExplored}</Text>
+          </View>
+
+          <View style={styles.statCard}>
+            <Text style={styles.statLabel}>Progresso geral</Text>
+            <Text style={styles.statValue}>{user.progress}%</Text>
+          </View>
+        </View>
+      </View>
+
+      {/* Seção: mosaicos concluídos */}
+      {mosaicBadges.length > 0 && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Mosaicos concluídos</Text>
+
+          <View style={styles.badgesRow}>
+            {mosaicBadges.map((badge) => {
+              const badgeHistory = Array.isArray(badge.history)
+                ? badge.history
+                : []; // 👈 garante array
+              const piecesCount = badgeHistory.length;
+
+              return (
+                <View style={styles.badgeItem} key={badge.id}>
+                  <MosaicRenderer
+                    currentMosaicIndex={badge.id}
+                    pieces={piecesCount}
+                    history={badgeHistory}
+                    size={80}
+                  />
+                  <Text style={styles.badgeLabel}>
+                    Mosaico {badge.id}
+                  </Text>
+                  <Text style={styles.badgeDate}>{badge.completedAt}</Text>
+                </View>
+              );
+            })}
+          </View>
+        </View>
+      )}
+
+      <View style={{ height: 32 }} />
     </ScrollView>
   );
 };
 
-const getColorByArea = (area: AreaId): string => {
-  switch (area) {
-    case 'IA':
-      return '#0EA5E9';
-    case 'Soft Skills':
-      return '#22C55E';
-    case 'ESG':
-      return '#A855F7';
-    case 'Tech':
-      return '#F97316';
-    default:
-      return '#CBD5F5';
-  }
-};
-
-const translateBadge = (badgeId: string): string => {
-  switch (badgeId) {
-    case 'first_trail':
-      return 'Primeira trilha concluída';
-    case 'streak_3':
-      return '3 dias seguidos estudando';
-    case 'pieces_10':
-      return '10 peças conquistadas';
-    case 'pieces_50':
-      return '50 peças conquistadas';
-    default:
-      return badgeId;
-  }
-};
-
 const styles = StyleSheet.create({
   container: {
-    padding: 24,
-    backgroundColor: '#F1F5F9',
-    flexGrow: 1,
+    flex: 1,
+    backgroundColor: '#2C2B21',
+    paddingHorizontal: 20,
+    paddingTop: 24,
   },
-  title: {
-    fontSize: 24,
-    fontWeight: '800',
-    marginBottom: 4,
-    color: '#0F172A',
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 24,
+  },
+  greeting: {
+    color: '#F5F5F5',
+    fontSize: 22,
+    fontWeight: '700',
   },
   subtitle: {
+    color: '#B0BEC5',
     fontSize: 14,
-    color: '#64748B',
-    marginBottom: 16,
+    marginTop: 4,
   },
-  card: {
-    backgroundColor: '#FFFFFF',
+  levelPill: {
+    backgroundColor: '#3E3C30',
     borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    alignItems: 'center',
   },
-  cardTitle: {
+  levelLabel: {
+    color: '#B0BEC5',
+    fontSize: 10,
+    textTransform: 'uppercase',
+  },
+  levelValue: {
+    color: '#A3E6D5',
     fontSize: 18,
     fontWeight: '700',
-    marginBottom: 4,
   },
-  cardText: {
-    fontSize: 14,
-    marginBottom: 4,
-    color: '#0F172A',
+  mosaicCard: {
+    backgroundColor: '#3E3C30',
+    borderRadius: 20,
+    padding: 16,
+    marginBottom: 24,
   },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    marginBottom: 6,
-    color: '#0F172A',
+  cardTitle: {
+    color: '#F5F5F5',
+    fontSize: 18,
+    fontWeight: '600',
   },
-  badgeItem: {
-    fontSize: 14,
-    marginBottom: 4,
+  cardSubtitle: {
+    color: '#B0BEC5',
+    fontSize: 13,
+    marginTop: 4,
   },
-  legendContainer: {
+  mosaicPreviewWrapper: {
+    marginTop: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  progressRow: {
     marginTop: 12,
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
   },
-  legendItem: {
+  progressText: {
+    color: '#A3E6D5',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  progressHint: {
+    color: '#D1C4E9',
+    fontSize: 12,
+  },
+  streakRow: {
+    marginTop: 12,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  streakPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginRight: 8,
-  },
-  legendColor: {
-    width: 12,
-    height: 12,
+    backgroundColor: '#2C2B21',
     borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  streakEmoji: {
+    fontSize: 14,
+    marginRight: 6,
+  },
+  streakText: {
+    color: '#F5F5F5',
+    fontSize: 13,
+  },
+  xpPill: {
+    backgroundColor: '#4DB6AC',
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  xpLabel: {
+    color: '#2C2B21',
+    fontSize: 11,
+    fontWeight: '600',
     marginRight: 4,
   },
-  legendText: {
+  xpValue: {
+    color: '#2C2B21',
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  section: {
+    marginBottom: 24,
+  },
+  sectionTitle: {
+    color: '#F5F5F5',
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 12,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 8,
+  },
+  statCard: {
+    flex: 1,
+    backgroundColor: '#3E3C30',
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  statLabel: {
+    color: '#B0BEC5',
     fontSize: 12,
-    color: '#475569',
+  },
+  statValue: {
+    color: '#A3E6D5',
+    fontSize: 18,
+    fontWeight: '700',
+    marginTop: 4,
+  },
+  badgesRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  badgeItem: {
+    width: 110,
+    backgroundColor: '#3E3C30',
+    borderRadius: 16,
+    padding: 8,
+    alignItems: 'center',
+  },
+  badgeLabel: {
+    color: '#F5F5F5',
+    fontSize: 12,
+    marginTop: 4,
+    fontWeight: '500',
+  },
+  badgeDate: {
+    color: '#B0BEC5',
+    fontSize: 10,
+    marginTop: 2,
   },
 });
 
