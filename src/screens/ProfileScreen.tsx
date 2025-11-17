@@ -1,17 +1,18 @@
 // src/screens/ProfileScreen.tsx
 
-import React from 'react';
+import React from "react";
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-} from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { useUser } from '../context/UserContext';
-import { MOSAICO_SEGMENTS, MosaicIndex } from '../utils/mosaicConfig';
-import { colors } from '../styles/colors';
+} from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import { useUser } from "../context/UserContext";
+import { MOSAICO_SEGMENTS, MosaicIndex } from "../utils/mosaicConfig";
+import { colors } from "../styles/colors";
+import { Ionicons } from "@expo/vector-icons";
 
 const ProfileScreen: React.FC = () => {
   const navigation = useNavigation<any>();
@@ -33,39 +34,21 @@ const ProfileScreen: React.FC = () => {
     >
       {/* Cabeçalho */}
       <View style={styles.header}>
-        <View style={styles.headerLeft}>
+        <View style={{ flex: 1 }}>
           <Text style={styles.greeting}>Olá, {user.name} 👋</Text>
           <Text style={styles.subtitle}>
             Cada habilidade é uma peça. Continue montando seu MOSAICO.
           </Text>
-
-          <View style={styles.levelRow}>
-            <View style={styles.levelPill}>
-              <Text style={styles.levelLabel}>Nível</Text>
-              <Text style={styles.levelValue}>{user.level}</Text>
-            </View>
-          </View>
         </View>
 
+        {/* Lado direito: botões de ação */}
         <View style={styles.headerActions}>
-          <TouchableOpacity
-            style={styles.iconButton}
-            onPress={() => {
-              // navegação para Configurações se você criar a tela
-              // navigation.navigate('Settings');
-              console.log('Ir para configurações');
-            }}
-          >
-            <Text style={styles.iconButtonText}>⚙️</Text>
+          <TouchableOpacity style={styles.iconButton}>
+            <Ionicons name="settings-outline" size={22} color="#F5F5F5" />
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[styles.iconButton, styles.logoutButton]}
-            onPress={() => {
-              if (logout) logout();
-            }}
-          >
-            <Text style={styles.iconButtonText}>⏻</Text>
+          <TouchableOpacity style={styles.iconButton}>
+            <Ionicons name="log-out-outline" size={22} color="#F5F5F5" />
           </TouchableOpacity>
         </View>
       </View>
@@ -74,7 +57,7 @@ const ProfileScreen: React.FC = () => {
       <TouchableOpacity
         style={styles.mosaicCard}
         activeOpacity={0.9}
-        onPress={() => navigation.navigate('Mosaic')}
+        onPress={() => navigation.navigate("Mosaic")}
       >
         {allCompleted ? (
           <>
@@ -88,7 +71,7 @@ const ProfileScreen: React.FC = () => {
             </Text>
 
             <Text style={styles.mosaicSummaryText}>
-              Parabéns! Você se tornou um verdadeiro{' '}
+              Parabéns! Você se tornou um verdadeiro{" "}
               <Text style={styles.bold}>Mestre do Mosaico</Text>.
             </Text>
 
@@ -174,9 +157,9 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
     marginBottom: 24,
   },
   headerLeft: {
@@ -186,7 +169,7 @@ const styles = StyleSheet.create({
   greeting: {
     color: colors.textPrimary,
     fontSize: 22,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   subtitle: {
     color: colors.textSecondary,
@@ -195,31 +178,31 @@ const styles = StyleSheet.create({
   },
   levelRow: {
     marginTop: 10,
-    flexDirection: 'row',
+    flexDirection: "row",
   },
   levelPill: {
     backgroundColor: colors.surface,
     borderRadius: 16,
     paddingHorizontal: 14,
     paddingVertical: 8,
-    alignItems: 'center',
-    alignSelf: 'flex-start',
+    alignItems: "center",
+    alignSelf: "flex-start",
     borderWidth: 1,
-    borderColor: 'rgba(163,230,213,0.4)', // secondary suave
+    borderColor: "rgba(163,230,213,0.4)", // secondary suave
   },
   levelLabel: {
     color: colors.textSecondary,
     fontSize: 10,
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
   },
   levelValue: {
     color: colors.secondary,
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   headerActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 8,
   },
   iconButton: {
@@ -227,11 +210,11 @@ const styles = StyleSheet.create({
     height: 32,
     borderRadius: 16,
     backgroundColor: colors.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   logoutButton: {
-    backgroundColor: '#C62828',
+    backgroundColor: "#C62828",
   },
   iconButtonText: {
     color: colors.textPrimary,
@@ -246,7 +229,7 @@ const styles = StyleSheet.create({
   cardTitle: {
     color: colors.textPrimary,
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   cardSubtitle: {
     color: colors.textSecondary,
@@ -254,7 +237,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   mosaicInfoRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     marginTop: 12,
     gap: 12,
   },
@@ -269,20 +252,20 @@ const styles = StyleSheet.create({
   infoValue: {
     color: colors.secondary,
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: "700",
     marginTop: 2,
   },
   cardLink: {
     marginTop: 14,
     color: colors.accent,
     fontSize: 13,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   mosaicSummaryHighlight: {
     marginTop: 10,
     color: colors.secondary,
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   mosaicSummaryText: {
     marginTop: 4,
@@ -291,7 +274,7 @@ const styles = StyleSheet.create({
   },
   bold: {
     color: colors.textPrimary,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   section: {
     marginBottom: 24,
@@ -299,11 +282,11 @@ const styles = StyleSheet.create({
   sectionTitle: {
     color: colors.textPrimary,
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: 12,
   },
   statsRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 12,
     marginBottom: 8,
   },
@@ -321,7 +304,7 @@ const styles = StyleSheet.create({
   statValue: {
     color: colors.secondary,
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: "700",
     marginTop: 4,
   },
 });
