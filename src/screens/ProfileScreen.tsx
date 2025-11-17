@@ -1,3 +1,5 @@
+// src/screens/ProfileScreen.tsx
+
 import React from 'react';
 import {
   View,
@@ -9,96 +11,120 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { useUser } from '../context/UserContext';
 import { MOSAICO_SEGMENTS, MosaicIndex } from '../utils/mosaicConfig';
+import { colors } from '../styles/colors';
 
 const ProfileScreen: React.FC = () => {
   const navigation = useNavigation<any>();
-  const { user } = useUser();
+  const { user, logout } = useUser() as any;
 
   const currentIndex = user.currentMosaicIndex as MosaicIndex;
-  const currentPieces = user.currentMosaicPieces ?? 0;
+  const currentPieces = user.currentMosaicPieces;
+  const currentHistory = user.currentMosaicHistory ?? [];
+  const totalSegmentsCurrent = MOSAICO_SEGMENTS[currentIndex];
+
   const mosaicBadges = user.mosaicBadges ?? [];
-
   const totalMosaics = Object.keys(MOSAICO_SEGMENTS).length;
-  const completedMosaics = mosaicBadges.length;
-  const allMosaicsCompleted = completedMosaics >= totalMosaics;
-
-  const totalSegmentsCurrent =
-    currentIndex != null ? MOSAICO_SEGMENTS[currentIndex] ?? 0 : 0;
-  const remainingPieces =
-    totalSegmentsCurrent > 0
-      ? Math.max(totalSegmentsCurrent - currentPieces, 0)
-      : 0;
+  const allCompleted = mosaicBadges.length >= totalMosaics;
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.contentContainer}
+    >
       {/* Cabeçalho */}
       <View style={styles.header}>
-        <View>
+        <View style={styles.headerLeft}>
           <Text style={styles.greeting}>Olá, {user.name} 👋</Text>
           <Text style={styles.subtitle}>
             Cada habilidade é uma peça. Continue montando seu MOSAICO.
           </Text>
+
+          <View style={styles.levelRow}>
+            <View style={styles.levelPill}>
+              <Text style={styles.levelLabel}>Nível</Text>
+              <Text style={styles.levelValue}>{user.level}</Text>
+            </View>
+          </View>
         </View>
 
-        <View style={styles.levelPill}>
-          <Text style={styles.levelLabel}>Nível</Text>
-          <Text style={styles.levelValue}>{user.level}</Text>
+        <View style={styles.headerActions}>
+          <TouchableOpacity
+            style={styles.iconButton}
+            onPress={() => {
+              // navegação para Configurações se você criar a tela
+              // navigation.navigate('Settings');
+              console.log('Ir para configurações');
+            }}
+          >
+            <Text style={styles.iconButtonText}>⚙️</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.iconButton, styles.logoutButton]}
+            onPress={() => {
+              if (logout) logout();
+            }}
+          >
+            <Text style={styles.iconButtonText}>⏻</Text>
+          </TouchableOpacity>
         </View>
       </View>
 
-      {/* Card principal com RESUMO do mosaico */}
+      {/* Card principal - resumo do mosaico */}
       <TouchableOpacity
         style={styles.mosaicCard}
-        activeOpacity={0.85}
+        activeOpacity={0.9}
         onPress={() => navigation.navigate('Mosaic')}
       >
-        {!allMosaicsCompleted ? (
-          <>
-            <Text style={styles.cardTitle}>Seu mosaico</Text>
-            <Text style={styles.cardSubtitle}>
-              Toque para ver a jornada visual completa.
-            </Text>
-
-            <View style={styles.mosaicSummaryContent}>
-              <Text style={styles.mosaicSummaryLine}>
-                Mosaico {currentIndex} de {totalMosaics}
-              </Text>
-              <Text style={styles.mosaicSummaryLine}>
-                {currentPieces}/{totalSegmentsCurrent} peças concluídas
-              </Text>
-              <Text style={styles.mosaicSummaryHint}>
-                Faltam{' '}
-                <Text style={{ fontWeight: '700' }}>
-                  {remainingPieces}
-                </Text>{' '}
-                peças para concluir este mosaico.
-              </Text>
-            </View>
-
-            <View style={styles.mosaicFooterRow}>
-              <Text style={styles.progressHint}>ver detalhes ⟶</Text>
-            </View>
-          </>
-        ) : (
+        {allCompleted ? (
           <>
             <Text style={styles.cardTitle}>Mosaico completo</Text>
             <Text style={styles.cardSubtitle}>
               Você concluiu todos os mosaicos disponíveis. 🎉
             </Text>
 
-            <View style={styles.mosaicSummaryContent}>
-              <Text style={styles.mosaicSummaryLine}>
-                {completedMosaics} de {totalMosaics} mosaicos concluídos.
-              </Text>
-              <Text style={styles.mosaicSummaryHint}>
-                Parabéns! Você se tornou um verdadeiro{' '}
-                <Text style={{ fontWeight: '700' }}>Mestre do Mosaico</Text>.
-              </Text>
+            <Text style={styles.mosaicSummaryHighlight}>
+              {mosaicBadges.length} de {totalMosaics} mosaicos concluídos.
+            </Text>
+
+            <Text style={styles.mosaicSummaryText}>
+              Parabéns! Você se tornou um verdadeiro{' '}
+              <Text style={styles.bold}>Mestre do Mosaico</Text>.
+            </Text>
+
+            <Text style={styles.cardLink}>ver conquistas →</Text>
+          </>
+        ) : (
+          <>
+            <Text style={styles.cardTitle}>Seu mosaico</Text>
+            <Text style={styles.cardSubtitle}>
+              Resumo da sua progressão atual.
+            </Text>
+
+            <View style={styles.mosaicInfoRow}>
+              <View style={styles.mosaicInfoBlock}>
+                <Text style={styles.infoLabel}>Mosaico atual</Text>
+                <Text style={styles.infoValue}>#{currentIndex}</Text>
+              </View>
+
+              <View style={styles.mosaicInfoBlock}>
+                <Text style={styles.infoLabel}>Peças concluídas</Text>
+                <Text style={styles.infoValue}>
+                  {currentPieces}/{totalSegmentsCurrent}
+                </Text>
+              </View>
             </View>
 
-            <View style={styles.mosaicFooterRow}>
-              <Text style={styles.progressHint}>ver conquistas ⟶</Text>
+            <View style={styles.mosaicInfoRow}>
+              <View style={styles.mosaicInfoBlock}>
+                <Text style={styles.infoLabel}>Mosaicos concluídos</Text>
+                <Text style={styles.infoValue}>
+                  {mosaicBadges.length}/{totalMosaics}
+                </Text>
+              </View>
             </View>
+
+            <Text style={styles.cardLink}>ver mosaico em detalhes →</Text>
           </>
         )}
       </TouchableOpacity>
@@ -132,8 +158,6 @@ const ProfileScreen: React.FC = () => {
         </View>
       </View>
 
-      {/* NADA de mosaicos concluídos aqui – fica só na MosaicScreen */}
-
       <View style={{ height: 32 }} />
     </ScrollView>
   );
@@ -142,9 +166,12 @@ const ProfileScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#2C2B21',
+    backgroundColor: colors.background,
+  },
+  contentContainer: {
     paddingHorizontal: 20,
     paddingTop: 24,
+    paddingBottom: 16,
   },
   header: {
     flexDirection: 'row',
@@ -152,77 +179,125 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     marginBottom: 24,
   },
+  headerLeft: {
+    flex: 1,
+    paddingRight: 12,
+  },
   greeting: {
-    color: '#F5F5F5',
+    color: colors.textPrimary,
     fontSize: 22,
     fontWeight: '700',
   },
   subtitle: {
-    color: '#B0BEC5',
+    color: colors.textSecondary,
     fontSize: 14,
     marginTop: 4,
   },
+  levelRow: {
+    marginTop: 10,
+    flexDirection: 'row',
+  },
   levelPill: {
-    backgroundColor: '#3E3C30',
+    backgroundColor: colors.surface,
     borderRadius: 16,
     paddingHorizontal: 14,
     paddingVertical: 8,
     alignItems: 'center',
+    alignSelf: 'flex-start',
+    borderWidth: 1,
+    borderColor: 'rgba(163,230,213,0.4)', // secondary suave
   },
   levelLabel: {
-    color: '#B0BEC5',
+    color: colors.textSecondary,
     fontSize: 10,
     textTransform: 'uppercase',
   },
   levelValue: {
-    color: '#A3E6D5',
+    color: colors.secondary,
     fontSize: 18,
     fontWeight: '700',
   },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  iconButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  logoutButton: {
+    backgroundColor: '#C62828',
+  },
+  iconButtonText: {
+    color: colors.textPrimary,
+    fontSize: 16,
+  },
   mosaicCard: {
-    backgroundColor: '#3E3C30',
+    backgroundColor: colors.surface,
     borderRadius: 20,
     padding: 16,
     marginBottom: 24,
   },
   cardTitle: {
-    color: '#F5F5F5',
+    color: colors.textPrimary,
     fontSize: 18,
     fontWeight: '600',
   },
   cardSubtitle: {
-    color: '#B0BEC5',
+    color: colors.textSecondary,
     fontSize: 13,
     marginTop: 4,
   },
-  mosaicSummaryContent: {
-    marginTop: 12,
-  },
-  mosaicSummaryLine: {
-    color: '#A3E6D5',
-    fontSize: 14,
-    fontWeight: '500',
-    marginBottom: 2,
-  },
-  mosaicSummaryHint: {
-    color: '#CFD8DC',
-    fontSize: 12,
-    marginTop: 4,
-  },
-  mosaicFooterRow: {
-    marginTop: 10,
+  mosaicInfoRow: {
     flexDirection: 'row',
-    justifyContent: 'flex-end',
+    marginTop: 12,
+    gap: 12,
   },
-  progressHint: {
-    color: '#D1C4E9',
+  mosaicInfoBlock: {
+    flex: 1,
+    paddingVertical: 6,
+  },
+  infoLabel: {
+    color: colors.textSecondary,
     fontSize: 12,
+  },
+  infoValue: {
+    color: colors.secondary,
+    fontSize: 16,
+    fontWeight: '700',
+    marginTop: 2,
+  },
+  cardLink: {
+    marginTop: 14,
+    color: colors.accent,
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  mosaicSummaryHighlight: {
+    marginTop: 10,
+    color: colors.secondary,
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  mosaicSummaryText: {
+    marginTop: 4,
+    color: colors.textSecondary,
+    fontSize: 13,
+  },
+  bold: {
+    color: colors.textPrimary,
+    fontWeight: '700',
   },
   section: {
     marginBottom: 24,
   },
   sectionTitle: {
-    color: '#F5F5F5',
+    color: colors.textPrimary,
     fontSize: 16,
     fontWeight: '600',
     marginBottom: 12,
@@ -234,17 +309,17 @@ const styles = StyleSheet.create({
   },
   statCard: {
     flex: 1,
-    backgroundColor: '#3E3C30',
+    backgroundColor: colors.surface,
     borderRadius: 16,
     paddingHorizontal: 12,
     paddingVertical: 10,
   },
   statLabel: {
-    color: '#B0BEC5',
+    color: colors.textSecondary,
     fontSize: 12,
   },
   statValue: {
-    color: '#A3E6D5',
+    color: colors.secondary,
     fontSize: 18,
     fontWeight: '700',
     marginTop: 4,

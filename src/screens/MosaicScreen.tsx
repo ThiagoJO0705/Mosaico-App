@@ -1,22 +1,23 @@
 // src/screens/MosaicScreen.tsx
 
-import React from "react";
-import { View, Text, StyleSheet, ScrollView } from "react-native";
-import { useUser } from "../context/UserContext";
-import MosaicRenderer from "../components/MosaicRenderer";
-import { MOSAICO_SEGMENTS, MosaicIndex } from "../utils/mosaicConfig";
+import React from 'react';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { useUser } from '../context/UserContext';
+import MosaicRenderer from '../components/MosaicRenderer';
+import { MOSAICO_SEGMENTS, MosaicIndex } from '../utils/mosaicConfig';
+import { colors } from '../styles/colors';
 
 // Mapeia cada COR para o nome da habilidade
 const COLOR_TO_SKILL_LABEL: Record<string, string> = {
-  "#FFD54F": "ESG",
-  "#D1C4E9": "IA",
-  "#4DB6AC": "Tech",
+  '#FFD54F': 'ESG',
+  '#D1C4E9': 'IA',
+  '#4DB6AC': 'Tech',
   // adicione mais se quiser:
   // '#FF8A65': 'Soft Skills',
 };
 
 const MosaicScreen: React.FC = () => {
-  const { user } = useUser();
+  const { user } = useUser() as any;
 
   const currentIndex = user.currentMosaicIndex as MosaicIndex;
   const currentPieces = user.currentMosaicPieces ?? 0;
@@ -35,16 +36,16 @@ const MosaicScreen: React.FC = () => {
 
   if (Array.isArray(currentHistory)) {
     currentHistory.forEach((c) => {
-      if (typeof c === "string") {
+      if (typeof c === 'string') {
         allColors.push(c);
       }
     });
   }
 
-  mosaicBadges.forEach((badge) => {
+  mosaicBadges.forEach((badge: any) => {
     const hist = Array.isArray(badge.history) ? badge.history : [];
-    hist.forEach((c) => {
-      if (typeof c === "string") {
+    hist.forEach((c: any) => {
+      if (typeof c === 'string') {
         allColors.push(c);
       }
     });
@@ -57,13 +58,18 @@ const MosaicScreen: React.FC = () => {
     colorCounts[key] = (colorCounts[key] || 0) + 1;
   });
 
-  const colorEntries = Object.entries(colorCounts).sort((a, b) => b[1] - a[1]);
+  const colorEntries = Object.entries(colorCounts).sort(
+    (a, b) => b[1] - a[1],
+  );
   const totalPiecesFromColors =
     colorEntries.reduce((sum, [, value]) => sum + value, 0) || 0;
   const hasSkills = totalPiecesFromColors > 0;
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.contentContainer}
+    >
       <Text style={styles.title}>Meu Mosaico</Text>
       <Text style={styles.subtitle}>
         Veja sua jornada visual de habilidades e conquistas.
@@ -152,12 +158,18 @@ const MosaicScreen: React.FC = () => {
               {colorEntries.map(([colorHex, value]) => {
                 if (value <= 0) return null;
                 const hex = colorHex;
-                const label = COLOR_TO_SKILL_LABEL[hex] ?? "Outras áreas";
-                const pct = Math.round((value / totalPiecesFromColors) * 100);
+                const label =
+                  COLOR_TO_SKILL_LABEL[hex] ?? 'Outras áreas';
+                const pct = Math.round(
+                  (value / totalPiecesFromColors) * 100,
+                );
                 return (
                   <View key={hex} style={styles.skillLegendItem}>
                     <View
-                      style={[styles.skillLegendDot, { backgroundColor: hex }]}
+                      style={[
+                        styles.skillLegendDot,
+                        { backgroundColor: hex },
+                      ]}
                     />
                     <Text style={styles.skillLegendText}>
                       {label} · {pct}%
@@ -187,7 +199,7 @@ const MosaicScreen: React.FC = () => {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.badgesHorizontalContent}
           >
-            {mosaicBadges.map((badge) => {
+            {mosaicBadges.map((badge: any) => {
               const history = Array.isArray(badge.history) ? badge.history : [];
               return (
                 <View key={badge.id} style={styles.badgeCardHorizontal}>
@@ -195,8 +207,8 @@ const MosaicScreen: React.FC = () => {
                     currentMosaicIndex={badge.id}
                     pieces={history.length}
                     history={history}
-                    size={90} // tamanho padronizado
-                    showGlow={false} // 🔥 sem círculo aqui
+                    size={90}          // tamanho padronizado
+                    showGlow={false}   // sem círculo aqui
                   />
                   <Text style={styles.badgeTitle}>Mosaico {badge.id}</Text>
                   <Text style={styles.badgeDate}>
@@ -217,68 +229,71 @@ const MosaicScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#2C2B21",
+    backgroundColor: colors.background,
+  },
+  contentContainer: {
     paddingHorizontal: 20,
     paddingTop: 24,
+    paddingBottom: 16,
   },
   title: {
-    color: "#F5F5F5",
+    color: colors.textPrimary,
     fontSize: 22,
-    fontWeight: "700",
+    fontWeight: '700',
   },
   subtitle: {
-    color: "#B0BEC5",
+    color: colors.textSecondary,
     fontSize: 14,
     marginTop: 4,
     marginBottom: 16,
   },
 
   currentCard: {
-    backgroundColor: "#3E3C30",
+    backgroundColor: colors.surface,
     borderRadius: 20,
     padding: 16,
     marginBottom: 24,
   },
   cardTitle: {
-    color: "#F5F5F5",
+    color: colors.textPrimary,
     fontSize: 18,
-    fontWeight: "600",
+    fontWeight: '600',
   },
   cardSubtitle: {
-    color: "#B0BEC5",
+    color: colors.textSecondary,
     fontSize: 13,
     marginTop: 4,
   },
   mosaicWrapper: {
     marginTop: 16,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   progressText: {
     marginTop: 12,
-    color: "#A3E6D5",
+    color: colors.secondary,
     fontSize: 14,
-    fontWeight: "500",
+    fontWeight: '500',
   },
   progressHint: {
     marginTop: 4,
-    color: "#B0BEC5",
+    color: colors.textSecondary,
     fontSize: 12,
   },
   masterLine: {
-    color: "#A3E6D5",
+    color: colors.secondary,
     fontSize: 14,
-    fontWeight: "600",
+    fontWeight: '600',
   },
   masterHint: {
-    color: "#CFD8DC",
+    color: colors.textSecondary,
     fontSize: 12,
     marginTop: 4,
   },
 
   // Habilidades
   skillsCard: {
-    backgroundColor: "#3E3C30",
+    backgroundColor: colors.surface,
     borderRadius: 20,
     padding: 16,
     marginBottom: 24,
@@ -289,19 +304,19 @@ const styles = StyleSheet.create({
   skillBarBackground: {
     height: 14,
     borderRadius: 999,
-    backgroundColor: "#2C2B21",
-    overflow: "hidden",
-    flexDirection: "row",
+    backgroundColor: '#16202B', // um tom mais escuro dentro da barra
+    overflow: 'hidden',
+    flexDirection: 'row',
   },
   skillBarSegment: {
-    height: "100%",
+    height: '100%',
   },
   skillLegend: {
     marginTop: 8,
   },
   skillLegendItem: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     marginTop: 4,
   },
   skillLegendDot: {
@@ -311,7 +326,7 @@ const styles = StyleSheet.create({
     marginRight: 6,
   },
   skillLegendText: {
-    color: "#ECEFF1",
+    color: colors.textPrimary,
     fontSize: 12,
   },
 
@@ -319,13 +334,13 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   sectionTitle: {
-    color: "#F5F5F5",
+    color: colors.textPrimary,
     fontSize: 16,
-    fontWeight: "600",
+    fontWeight: '600',
     marginBottom: 12,
   },
   emptyText: {
-    color: "#B0BEC5",
+    color: colors.textSecondary,
     fontSize: 13,
   },
 
@@ -335,23 +350,23 @@ const styles = StyleSheet.create({
   },
   badgeCardHorizontal: {
     width: 140,
-    backgroundColor: "#3E3C30",
+    backgroundColor: colors.surface,
     borderRadius: 16,
     padding: 10,
-    alignItems: "center",
+    alignItems: 'center',
     marginRight: 12,
   },
   badgeTitle: {
-    color: "#F5F5F5",
+    color: colors.textPrimary,
     fontSize: 13,
-    fontWeight: "500",
+    fontWeight: '500',
     marginTop: 6,
   },
   badgeDate: {
-    color: "#B0BEC5",
+    color: colors.textSecondary,
     fontSize: 11,
     marginTop: 2,
-    textAlign: "center",
+    textAlign: 'center',
   },
 });
 
