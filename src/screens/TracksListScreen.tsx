@@ -13,9 +13,9 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { TRACKS, TrackArea } from '../data/tracks';
 import { useUser } from '../context/UserContext';
-// 1. IMPORTE O NOSSO NOVO HOOK
 import { useDebounce } from '../hooks/useDebounce';
 
+// MODIFICAÇÃO: Adicionados todos os filtros para corresponder às novas áreas
 const FILTERS: (TrackArea | 'Todas')[] = [
   'Todas',
   'Tecnologia',
@@ -24,6 +24,10 @@ const FILTERS: (TrackArea | 'Todas')[] = [
   'Dados',
   'Liderança',
   'Produtividade',
+  'Marketing & Vendas',
+  'Finanças & Investimentos',
+  'Design & UX',
+  'Inovação & Empreendedorismo',
 ];
 
 const TracksListScreen: React.FC = () => {
@@ -35,8 +39,6 @@ const TracksListScreen: React.FC = () => {
     'Todas',
   );
 
-  // 2. CRIE A VERSÃO "DEBOUNCED" DO ESTADO DE BUSCA
-  // Ele vai esperar 300ms após o usuário parar de digitar para atualizar.
   const debouncedSearch = useDebounce(search, 300);
 
   const tracksData = useMemo(() => {
@@ -46,7 +48,6 @@ const TracksListScreen: React.FC = () => {
       const matchesFilter =
         selectedFilter === 'Todas' || track.area === selectedFilter;
 
-      // 3. USE O VALOR DEBOUNCED PARA A BUSCA
       const term = debouncedSearch.trim().toLowerCase();
       const matchesSearch =
         term.length === 0 ||
@@ -55,17 +56,16 @@ const TracksListScreen: React.FC = () => {
 
       return matchesFilter && matchesSearch;
     });
-  // 4. ATUALIZE A DEPENDÊNCIA DO useMemo PARA USAR debouncedSearch
   }, [debouncedSearch, selectedFilter]);
 
   return (
     <View style={styles.container}>
-      <FlatList // MODIFICAÇÃO: Usar FlatList como o componente principal é melhor para performance
+      <FlatList
         data={tracksData}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
-        ListHeaderComponent={ // Cabeçalho da lista
+        ListHeaderComponent={
           <>
             <Text style={styles.title}>Trilhas MOSAICO</Text>
             <Text style={styles.subtitle}>
@@ -78,7 +78,7 @@ const TracksListScreen: React.FC = () => {
                 placeholder="Qual habilidade você busca hoje?"
                 placeholderTextColor="#90A4AE"
                 value={search}
-                onChangeText={setSearch} // O input ainda atualiza o estado 'search' instantaneamente
+                onChangeText={setSearch}
               />
             </View>
 
@@ -210,7 +210,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   filterRow: {
-    paddingBottom: 20, // Aumentado para dar mais espaço
+    paddingBottom: 20,
   },
   filterPill: {
     paddingHorizontal: 12,

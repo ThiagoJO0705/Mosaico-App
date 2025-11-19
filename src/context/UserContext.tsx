@@ -2,6 +2,8 @@
 import React, { createContext, useContext, useState } from 'react';
 import { MOSAICO_SEGMENTS, MosaicIndex } from '../utils/mosaicConfig';
 import { TRACKS } from '../data/tracks';
+// MODIFICAÇÃO: Importa a lógica de cálculo de nível para manter o estado sincronizado
+import { calculateLevelProgress } from '../utils/xpConfig';
 
 export type MosaicBadge = {
   id: MosaicIndex;
@@ -16,8 +18,8 @@ export type TrackProgress = {
 export type UserData = {
   uid: string;
   name: string;
-  level: number;
-  xp: number;
+  level: number; // O nível ainda existe aqui para ser consumido por outros componentes
+  xp: number;    // Mas o XP é a única fonte da verdade
   streakDays: number;
   interests?: string[];
   recommendedTrackIds?: string[];
@@ -90,7 +92,13 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     setUser((prev) => {
       if (!prev) return prev; // Proteção
 
-      // 1. Atualiza progresso da trilha
+      // 1. Calcula o novo XP total
+      const newXp = prev.xp + (trackData?.rewardXp ?? 10);
+      
+      // 2. MODIFICAÇÃO: Calcula o novo nível com base no novo XP
+      const { currentLevel } = calculateLevelProgress(newXp);
+
+      // 3. Atualiza progresso da trilha
       const currentTrackProgress = prev.trackProgress[trackId] ?? {
         completedLessons: 0,
       };
@@ -100,36 +108,38 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
         [trackId]: { completedLessons: newCompleted },
       };
 
-      // 2. Atualiza peças e histórico do mosaico
+      // 4. Atualiza peças e histórico do mosaico
       const newPieces = prev.currentMosaicPieces + 1;
       const newHistory = [...prev.currentMosaicHistory, color];
       const totalNeeded = MOSAICO_SEGMENTS[prev.currentMosaicIndex];
 
       let updatedUser: UserData = {
         ...prev,
+        level: currentLevel, // Atualiza o nível com base no XP
+        xp: newXp,
         trackProgress: newTrackProgress,
         lessonsCompleted: prev.lessonsCompleted + 1,
-        xp: prev.xp + (trackData?.rewardXp ?? 10), // Usa XP da trilha
         progress: Math.min(100, prev.progress + 5),
         currentMosaicPieces: newPieces,
         currentMosaicHistory: newHistory,
       };
 
-      // 3. Verifica se o mosaico foi completado
+      // 5. Verifica se o mosaico foi completado
       if (newPieces >= totalNeeded) {
         const newBadge: MosaicBadge = {
           id: prev.currentMosaicIndex,
           completedAt: new Date().toLocaleDateString('pt-BR'),
           history: newHistory,
         };
-
+        
+        // MODIFICAÇÃO: A lógica de level up manual foi removida daqui,
+        // pois já é cuidada pelo cálculo de XP acima.
         updatedUser = {
           ...updatedUser,
           mosaicBadges: [...prev.mosaicBadges, newBadge],
           currentMosaicIndex: (prev.currentMosaicIndex + 1) as MosaicIndex,
           currentMosaicPieces: 0,
           currentMosaicHistory: [],
-          level: prev.level + 1, // Sobe de nível ao completar um mosaico
         };
       }
 

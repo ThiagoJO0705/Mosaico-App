@@ -9,12 +9,13 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { AuthStackParamList } from '../types/navigation'; // garante que aqui tenha a rota "Interests" e "AppRoot"
+import { AuthStackParamList } from '../types/navigation';
 import { useUser } from '../context/UserContext';
 import { TRACKS } from '../data/tracks';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Interests'>;
 
+// MODIFICAÇÃO: Adicionadas as 4 novas áreas de interesse
 const INTEREST_OPTIONS = [
   'Tecnologia',
   'Soft Skills',
@@ -22,15 +23,17 @@ const INTEREST_OPTIONS = [
   'Dados',
   'Liderança',
   'Produtividade',
+  'Marketing & Vendas',
+  'Finanças & Investimentos',
+  'Design & UX',
+  'Inovação & Empreendedorismo',
 ];
 
 const GEMINI_API_URL =
   'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=YOUR_GEMINI_API_KEY';
 
 const InterestsScreen: React.FC<Props> = ({ navigation, route }) => {
-  // se quiser usar depois pra salvar no backend, o form já está aqui:
   const { form } = route.params;
-
   const { updateInterests, setRecommendedTracks } = useUser();
 
   const [selected, setSelected] = useState<string[]>([]);
@@ -46,13 +49,10 @@ const InterestsScreen: React.FC<Props> = ({ navigation, route }) => {
 
   const handleFinish = async () => {
     if (selected.length === 0) {
-      // força selecionar ao menos 1 interesse
       return;
     }
 
-    // 1) salva interesses no contexto
     updateInterests(selected);
-
     setLoading(true);
     let recommendedIds: string[] = [];
 
@@ -85,7 +85,6 @@ Responda APENAS um JSON no formato:
         const data = await resp.json();
         const text =
           data?.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
-
         try {
           const parsed = JSON.parse(text);
           if (parsed && Array.isArray(parsed.tracks)) {
@@ -93,15 +92,10 @@ Responda APENAS um JSON no formato:
               TRACKS.some((t) => t.id === id),
             );
           }
-        } catch {
-          // se não der pra parsear, cai no fallback abaixo
-        }
+        } catch {}
       }
-    } catch (e) {
-      // erro de rede / chave / etc → ignora e vai pro fallback
-    }
+    } catch (e) {}
 
-    // 2) Fallback: até 3 trilhas que batem com as áreas escolhidas
     if (recommendedIds.length === 0) {
       recommendedIds = TRACKS.filter((t) =>
         selected.includes(t.area),
@@ -111,11 +105,8 @@ Responda APENAS um JSON no formato:
     }
 
     setRecommendedTracks(recommendedIds);
-
     setLoading(false);
-
-    // 3) entra no app principal (RootNavigator -> Tabs)s
-    navigation.replace('AppRoot'); // 👈 AGORA VAI PRO MENU/TABS
+    navigation.replace('AppRoot');
   };
 
   return (

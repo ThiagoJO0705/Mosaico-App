@@ -1,52 +1,89 @@
 // src/utils/xpConfig.ts
 
-// Define o XP TOTAL necessário para ALCANÇAR cada nível.
-// Nível 1 é o início (0 XP). Para chegar ao Nível 2, precisa de 100 XP total, etc.
-export const LEVEL_XP_THRESHOLDS: Record<number, number> = {
-  1: 0,
-  2: 100,
-  3: 250,
-  4: 500,
-  5: 800,
-  6: 1200,
-  7: 1700,
-  8: 2300,
-  9: 3000,
-  10: 4000,
-  // Adicione mais níveis conforme necessário
+// Define o XP TOTAL necessário para ALCANÇAR cada nível, e o título associado.
+export const LEVEL_DATA: Record<number, { xpNeeded: number; title: string }> = {
+  // Níveis Iniciais (1-5)
+  1: { xpNeeded: 0, title: 'Iniciante' },
+  2: { xpNeeded: 100, title: 'Aprendiz' },
+  3: { xpNeeded: 250, title: 'Explorador' },
+  4: { xpNeeded: 500, title: 'Praticante' },
+  5: { xpNeeded: 800, title: 'Construtor' },
+
+  // Níveis Intermediários (6-10)
+  6: { xpNeeded: 1200, title: 'Artesão' },
+  7: { xpNeeded: 1700, title: 'Especialista' },
+  8: { xpNeeded: 2300, title: 'Mestre' },
+  9: { xpNeeded: 3000, title: 'Visionário' },
+  10: { xpNeeded: 4000, title: 'Mentor' },
+
+  // Níveis Avançados (11-15)
+  11: { xpNeeded: 5500, title: 'Lenda' },
+  12: { xpNeeded: 7500, title: 'Ícone' },
+  13: { xpNeeded: 10000, title: 'Titã' },
+  14: { xpNeeded: 13000, title: 'Colosso' },
+  15: { xpNeeded: 16500, title: 'Oráculo' },
+
+  // Níveis de Maestria (16-20)
+  16: { xpNeeded: 20500, title: 'Arquiteto' },
+  17: { xpNeeded: 25000, title: 'Pioneiro' },
+  18: { xpNeeded: 30000, title: 'Virtuoso' },
+  19: { xpNeeded: 36000, title: 'Iluminado' },
+  20: { xpNeeded: 43000, title: 'Sábio' },
+
+  // Níveis de Soberania (21-25)
+  21: { xpNeeded: 51000, title: 'Protetor' },
+  22: { xpNeeded: 60000, title: 'Alquimista' },
+  23: { xpNeeded: 70000, title: 'Desbravador' },
+  24: { xpNeeded: 82000, title: 'Soberano' },
+  25: { xpNeeded: 95000, title: 'Guardião' },
+
+  // Níveis Lendários (26-30)
+  26: { xpNeeded: 110000, title: 'Paradigma' },
+  27: { xpNeeded: 130000, title: 'Eminência' },
+  28: { xpNeeded: 155000, title: 'Ancestral' },
+  29: { xpNeeded: 185000, title: 'Primordial' },
+  30: { xpNeeded: 220000, title: 'Ascendente' },
 };
 
 /**
  * Calcula o progresso do nível atual com base no XP total do usuário.
  * @param totalXp O XP total acumulado pelo usuário.
- * @returns Um objeto com o nível atual, o XP ganho nesse nível,
+ * @returns Um objeto com o nível atual, o título do nível, o XP ganho nesse nível,
  *          o XP necessário para o próximo nível e a porcentagem de progresso.
  */
 export const calculateLevelProgress = (totalXp: number) => {
   let currentLevel = 1;
-  let nextLevelXp = LEVEL_XP_THRESHOLDS[2];
-  let currentLevelXp = LEVEL_XP_THRESHOLDS[1];
+  const levels = Object.keys(LEVEL_DATA).map(Number);
 
-  // 1. Encontrar o nível atual do usuário
-  for (const level in LEVEL_XP_THRESHOLDS) {
-    if (totalXp >= LEVEL_XP_THRESHOLDS[level]) {
-      currentLevel = parseInt(level, 10);
+  for (const level of levels) {
+    if (totalXp >= LEVEL_DATA[level].xpNeeded) {
+      currentLevel = level;
     } else {
-      break; // Sai do loop assim que encontrar um nível que o usuário não alcançou
+      break;
     }
   }
 
-  // 2. Definir o XP do nível atual e do próximo
-  currentLevelXp = LEVEL_XP_THRESHOLDS[currentLevel];
-  nextLevelXp = LEVEL_XP_THRESHOLDS[currentLevel + 1] ?? totalXp; // Se for o nível máximo, o próximo é o XP atual
+  const currentLevelData = LEVEL_DATA[currentLevel];
+  const nextLevelData = LEVEL_DATA[currentLevel + 1];
 
-  // 3. Calcular o XP ganho DESDE o início do nível atual
+  // Caso de nível máximo alcançado
+  if (!nextLevelData) {
+    const xpEarnedPastMax = totalXp - currentLevelData.xpNeeded;
+    return {
+      currentLevel,
+      levelTitle: currentLevelData.title,
+      xpEarnedInCurrentLevel: xpEarnedPastMax,
+      xpNeededForNextLevel: xpEarnedPastMax, // Faz a barra ficar cheia
+      progressPercentage: 100,
+    };
+  }
+
+  const currentLevelXp = currentLevelData.xpNeeded;
+  const nextLevelXp = nextLevelData.xpNeeded;
+
   const xpEarnedInCurrentLevel = totalXp - currentLevelXp;
-
-  // 4. Calcular o total de XP necessário PARA PASSAR deste nível
   const xpNeededForNextLevel = nextLevelXp - currentLevelXp;
 
-  // 5. Calcular a porcentagem (e garantir que não divida por zero)
   const progressPercentage =
     xpNeededForNextLevel > 0
       ? (xpEarnedInCurrentLevel / xpNeededForNextLevel) * 100
@@ -54,8 +91,9 @@ export const calculateLevelProgress = (totalXp: number) => {
 
   return {
     currentLevel,
+    levelTitle: currentLevelData.title,
     xpEarnedInCurrentLevel,
     xpNeededForNextLevel,
-    progressPercentage: Math.min(progressPercentage, 100), // Garante que não passe de 100%
+    progressPercentage: Math.min(progressPercentage, 100),
   };
 };

@@ -12,7 +12,7 @@ import { useUser } from '../context/UserContext';
 import MosaicRenderer from '../components/MosaicRenderer';
 import { MOSAICO_SEGMENTS, MosaicIndex } from '../utils/mosaicConfig';
 
-// MODIFICAÇÃO: Mapeamento de cores completo, refletindo TODAS as áreas de tracks.ts
+// MODIFICAÇÃO: Adicionadas as 4 novas áreas ao mapeamento de cores
 const COLOR_TO_SKILL_LABEL: Record<string, string> = {
   '#4DB6AC': 'Tecnologia',
   '#D1C4E9': 'Soft Skills',
@@ -20,6 +20,11 @@ const COLOR_TO_SKILL_LABEL: Record<string, string> = {
   '#A3E6D5': 'Dados',
   '#90CAF9': 'Liderança',
   '#FFAB91': 'Produtividade',
+  // Novas áreas:
+  '#EC407A': 'Marketing & Vendas',
+  '#66BB6A': 'Finanças & Investimentos',
+  '#7E57C2': 'Design & UX',
+  '#FFA726': 'Inovação & Empreendedorismo',
 };
 
 type MosaicBadge = {

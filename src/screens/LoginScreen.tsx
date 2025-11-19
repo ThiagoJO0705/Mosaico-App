@@ -10,6 +10,7 @@ import {
   Platform,
   Image,
   Animated,
+  ScrollView, // 1. IMPORTAR ScrollView
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../types/navigation';
@@ -33,55 +34,63 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
   }, []);
 
   const handleLogin = () => {
-    navigation.replace('AppTabs');
+    navigation.replace('AppRoot');
   };
 
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <Animated.View style={[styles.centerContent, { opacity: fadeAnim }]}>
-        {/* LOGO */}
-        <Image source={Logo} style={styles.logoImage} />
-        <Text style={styles.appName}>MOSAICO</Text>
-        <Text style={styles.logoSubtitle}>
-          Construa seu futuro peça por peça
-        </Text>
+      {/* 2. ENVOLVER O CONTEÚDO EM UM SCROLLVIEW */}
+      <ScrollView
+        contentContainerStyle={styles.scrollContainer}
+        keyboardShouldPersistTaps="handled"
+      >
+        <Animated.View style={[styles.centerContent, { opacity: fadeAnim }]}>
+          {/* LOGO */}
+          <Image source={Logo} style={styles.logoImage} />
+          <Text style={styles.appName}>MOSAICO</Text>
+          <Text style={styles.logoSubtitle}>
+            Construa seu futuro peça por peça
+          </Text>
 
-        {/* FORM */}
-        <View style={styles.form}>
-          <Text style={styles.label}>E-mail</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Digite seu e-mail"
-            placeholderTextColor="#78909C"
-            value={email}
-            onChangeText={setEmail}
-          />
+          {/* FORM */}
+          <View style={styles.form}>
+            <Text style={styles.label}>E-mail</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Digite seu e-mail"
+              placeholderTextColor="#78909C"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+            />
 
-          <Text style={styles.label}>Senha</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Digite sua senha"
-            placeholderTextColor="#78909C"
-            secureTextEntry
-            value={password}
-            onChangeText={setPassword}
-          />
+            <Text style={styles.label}>Senha</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Digite sua senha"
+              placeholderTextColor="#78909C"
+              secureTextEntry
+              value={password}
+              onChangeText={setPassword}
+            />
 
-          <TouchableOpacity style={styles.button} onPress={handleLogin}>
-            <Text style={styles.buttonText}>Entrar</Text>
-          </TouchableOpacity>
-
-          <View style={styles.footerRow}>
-            <Text style={styles.footerText}>Ainda não tem conta?</Text>
-            <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-              <Text style={styles.footerLink}> Criar conta</Text>
+            <TouchableOpacity style={styles.button} onPress={handleLogin}>
+              <Text style={styles.buttonText}>Entrar</Text>
             </TouchableOpacity>
+
+            <View style={styles.footerRow}>
+              <Text style={styles.footerText}>Ainda não tem conta?</Text>
+              <TouchableOpacity onPress={() => navigation.navigate('Register')}>
+                <Text style={styles.footerLink}> Criar conta</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
-      </Animated.View>
+        </Animated.View>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 };
@@ -91,14 +100,16 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#1C2A3A',
   },
-  
+  // 3. ESTILO PARA O CONTEÚDO DO SCROLLVIEW
+  scrollContainer: {
+    flexGrow: 1, // Garante que o conteúdo possa crescer para preencher a tela
+    justifyContent: 'center', // Centraliza verticalmente
+  },
   centerContent: {
-    flex: 1,
-    justifyContent: 'center',
+    // Não precisa mais de flex: 1, pois o scrollContainer já cuida disso
     alignItems: 'center',
     paddingHorizontal: 24,
   },
-
   logoImage: {
     width: 150,
     height: 150,
@@ -118,7 +129,6 @@ const styles = StyleSheet.create({
     marginBottom: 28,
     textAlign: 'center',
   },
-
   form: {
     width: '100%',
   },
