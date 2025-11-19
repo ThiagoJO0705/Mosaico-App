@@ -13,6 +13,8 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { TRACKS, TrackArea } from '../data/tracks';
 import { useUser } from '../context/UserContext';
+// 1. IMPORTE O NOSSO NOVO HOOK
+import { useDebounce } from '../hooks/useDebounce';
 
 const FILTERS: (TrackArea | 'Todas')[] = [
   'Todas',
@@ -33,6 +35,10 @@ const TracksListScreen: React.FC = () => {
     'Todas',
   );
 
+  // 2. CRIE A VERSÃO "DEBOUNCED" DO ESTADO DE BUSCA
+  // Ele vai esperar 300ms após o usuário parar de digitar para atualizar.
+  const debouncedSearch = useDebounce(search, 300);
+
   const tracksData = useMemo(() => {
     const base = Array.isArray(TRACKS) ? TRACKS : [];
 
@@ -40,7 +46,8 @@ const TracksListScreen: React.FC = () => {
       const matchesFilter =
         selectedFilter === 'Todas' || track.area === selectedFilter;
 
-      const term = search.trim().toLowerCase();
+      // 3. USE O VALOR DEBOUNCED PARA A BUSCA
+      const term = debouncedSearch.trim().toLowerCase();
       const matchesSearch =
         term.length === 0 ||
         track.title.toLowerCase().includes(term) ||
@@ -48,131 +55,124 @@ const TracksListScreen: React.FC = () => {
 
       return matchesFilter && matchesSearch;
     });
-  }, [search, selectedFilter]);
+  // 4. ATUALIZE A DEPENDÊNCIA DO useMemo PARA USAR debouncedSearch
+  }, [debouncedSearch, selectedFilter]);
 
   return (
     <View style={styles.container}>
-      <ScrollView
+      <FlatList // MODIFICAÇÃO: Usar FlatList como o componente principal é melhor para performance
+        data={tracksData}
+        keyExtractor={(item) => item.id}
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
-      >
-        {/* Cabeçalho + busca */}
-        <Text style={styles.title}>Trilhas MOSAICO</Text>
-        <Text style={styles.subtitle}>
-          Encontre a trilha certa para o próximo passo da sua jornada.
-        </Text>
-
-        {/* Busca */}
-        <View style={styles.searchContainer}>
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Qual habilidade você busca hoje?"
-            placeholderTextColor="#90A4AE"
-            value={search}
-            onChangeText={setSearch}
-          />
-        </View>
-
-        {/* Filtros rápidos */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.filterRow}
-        >
-          {FILTERS.map((filter) => {
-            const isActive = selectedFilter === filter;
-            return (
-              <TouchableOpacity
-                key={filter}
-                style={[
-                  styles.filterPill,
-                  isActive && styles.filterPillActive,
-                ]}
-                onPress={() => setSelectedFilter(filter)}
-              >
-                <Text
-                  style={[
-                    styles.filterPillText,
-                    isActive && styles.filterPillTextActive,
-                  ]}
-                >
-                  {filter}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
-
-        {/* Lista de trilhas (resumo) */}
-        <FlatList
-          data={tracksData}
-          keyExtractor={(item) => item.id}
-          scrollEnabled={false}
-          renderItem={({ item }) => {
-            const trackProg =
-              user.trackProgress[item.id]?.completedLessons ?? 0;
-            const percent = Math.round(
-              (trackProg / item.totalLessons) * 100,
-            );
-            const clampedPercent = isNaN(percent) ? 0 : percent;
-
-            return (
-              <TouchableOpacity
-                style={styles.card}
-                activeOpacity={0.9}
-                onPress={() =>
-                  navigation.navigate('TrackDetail', { trackId: item.id })
-                }
-              >
-                {/* Tag de área / dificuldade */}
-                <View style={styles.cardTagsRow}>
-                  <View style={[styles.tag, { backgroundColor: '#263545' }]}>
-                    <Text style={styles.tagText}>{item.area}</Text>
-                  </View>
-                  <View style={[styles.tag, { backgroundColor: '#37475A' }]}>
-                    <Text style={styles.tagText}>{item.difficulty}</Text>
-                  </View>
-                </View>
-
-                <Text style={styles.cardTitle}>{item.title}</Text>
-                <Text numberOfLines={2} style={styles.cardDescription}>
-                  {item.description}
-                </Text>
-
-                {/* Linha de meta / resumo */}
-                <View style={styles.cardMetaRow}>
-                  <Text style={styles.cardMetaText}>
-                    🕒 {Math.round(item.durationMinutes / 60)}h ·{' '}
-                    {item.totalLessons} aulas
-                  </Text>
-                  <Text style={styles.cardMetaText}>
-                    {clampedPercent}% concluído
-                  </Text>
-                </View>
-
-                {/* Barra de progresso fina */}
-                <View style={styles.progressBarBackground}>
-                  <View
-                    style={[
-                      styles.progressBarFill,
-                      { width: `${clampedPercent}%` },
-                    ]}
-                  />
-                </View>
-
-                <Text style={styles.cardHint}>
-                  Toque para ver detalhes da trilha →
-                </Text>
-              </TouchableOpacity>
-            );
-          }}
-          ListEmptyComponent={
-            <Text style={styles.emptyText}>
-              Nenhuma trilha encontrada. Ajuste o filtro ou a busca.
+        ListHeaderComponent={ // Cabeçalho da lista
+          <>
+            <Text style={styles.title}>Trilhas MOSAICO</Text>
+            <Text style={styles.subtitle}>
+              Encontre a trilha certa para o próximo passo da sua jornada.
             </Text>
-          }
-        />
-      </ScrollView>
+
+            <View style={styles.searchContainer}>
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Qual habilidade você busca hoje?"
+                placeholderTextColor="#90A4AE"
+                value={search}
+                onChangeText={setSearch} // O input ainda atualiza o estado 'search' instantaneamente
+              />
+            </View>
+
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.filterRow}
+            >
+              {FILTERS.map((filter) => {
+                const isActive = selectedFilter === filter;
+                return (
+                  <TouchableOpacity
+                    key={filter}
+                    style={[
+                      styles.filterPill,
+                      isActive && styles.filterPillActive,
+                    ]}
+                    onPress={() => setSelectedFilter(filter)}
+                  >
+                    <Text
+                      style={[
+                        styles.filterPillText,
+                        isActive && styles.filterPillTextActive,
+                      ]}
+                    >
+                      {filter}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </>
+        }
+        renderItem={({ item }) => {
+          const trackProg =
+            user.trackProgress[item.id]?.completedLessons ?? 0;
+          const percent = Math.round(
+            (trackProg / item.totalLessons) * 100,
+          );
+          const clampedPercent = isNaN(percent) ? 0 : percent;
+
+          return (
+            <TouchableOpacity
+              style={styles.card}
+              activeOpacity={0.9}
+              onPress={() =>
+                navigation.navigate('TrackDetail', { trackId: item.id })
+              }
+            >
+              <View style={styles.cardTagsRow}>
+                <View style={[styles.tag, { backgroundColor: '#263545' }]}>
+                  <Text style={styles.tagText}>{item.area}</Text>
+                </View>
+                <View style={[styles.tag, { backgroundColor: '#37475A' }]}>
+                  <Text style={styles.tagText}>{item.difficulty}</Text>
+                </View>
+              </View>
+
+              <Text style={styles.cardTitle}>{item.title}</Text>
+              <Text numberOfLines={2} style={styles.cardDescription}>
+                {item.description}
+              </Text>
+
+              <View style={styles.cardMetaRow}>
+                <Text style={styles.cardMetaText}>
+                  🕒 {Math.round(item.durationMinutes / 60)}h ·{' '}
+                  {item.totalLessons} aulas
+                </Text>
+                <Text style={styles.cardMetaText}>
+                  {clampedPercent}% concluído
+                </Text>
+              </View>
+
+              <View style={styles.progressBarBackground}>
+                <View
+                  style={[
+                    styles.progressBarFill,
+                    { width: `${clampedPercent}%` },
+                  ]}
+                />
+              </View>
+
+              <Text style={styles.cardHint}>
+                Toque para ver detalhes da trilha →
+              </Text>
+            </TouchableOpacity>
+          );
+        }}
+        ListEmptyComponent={
+          <Text style={styles.emptyText}>
+            Nenhuma trilha encontrada. Ajuste o filtro ou a busca.
+          </Text>
+        }
+      />
     </View>
   );
 };
@@ -210,9 +210,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   filterRow: {
-    flexDirection: 'row',
-    paddingVertical: 4,
-    paddingBottom: 12,
+    paddingBottom: 20, // Aumentado para dar mais espaço
   },
   filterPill: {
     paddingHorizontal: 12,
@@ -295,6 +293,8 @@ const styles = StyleSheet.create({
     color: '#B0BEC5',
     fontSize: 13,
     marginTop: 16,
+    textAlign: 'center',
+    paddingHorizontal: 20,
   },
 });
 
