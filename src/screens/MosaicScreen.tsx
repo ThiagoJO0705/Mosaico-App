@@ -1,3 +1,4 @@
+// src/screens/MosaicScreen.tsx
 import React, { useMemo, useState } from 'react';
 import {
   View,
@@ -11,13 +12,14 @@ import { useUser } from '../context/UserContext';
 import MosaicRenderer from '../components/MosaicRenderer';
 import { MOSAICO_SEGMENTS, MosaicIndex } from '../utils/mosaicConfig';
 
-// Mapeia cada COR para o nome da habilidade
+// MODIFICAÇÃO: Mapeamento de cores completo, refletindo TODAS as áreas de tracks.ts
 const COLOR_TO_SKILL_LABEL: Record<string, string> = {
+  '#4DB6AC': 'Tecnologia',
+  '#D1C4E9': 'Soft Skills',
   '#FFD54F': 'ESG',
-  '#D1C4E9': 'IA',
-  '#4DB6AC': 'Tech',
-  // adicione mais se quiser:
-  // '#FF8A65': 'Soft Skills',
+  '#A3E6D5': 'Dados',
+  '#90CAF9': 'Liderança',
+  '#FFAB91': 'Produtividade',
 };
 
 type MosaicBadge = {
@@ -170,8 +172,8 @@ const MosaicScreen: React.FC = () => {
           {!hasSkills && (
             <Text style={styles.emptyText}>
               Assim que você começar a montar seus mosaicos, vamos
-              mostrar aqui como suas habilidades se distribuem entre ESG,
-              IA, Tech e outras áreas.
+              mostrar aqui como suas habilidades se distribuem entre as
+              áreas.
             </Text>
           )}
 
@@ -370,7 +372,7 @@ const MosaicScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1C2A3A', // fundo principal
+    backgroundColor: '#1C2A3A',
     paddingHorizontal: 20,
     paddingTop: 24,
   },
@@ -385,9 +387,8 @@ const styles = StyleSheet.create({
     marginTop: 4,
     marginBottom: 16,
   },
-
   currentCard: {
-    backgroundColor: '#2A3B4C', // cards
+    backgroundColor: '#2A3B4C',
     borderRadius: 20,
     padding: 16,
     marginBottom: 24,
@@ -428,8 +429,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginTop: 4,
   },
-
-  // Habilidades
   skillsCard: {
     backgroundColor: '#2A3B4C',
     borderRadius: 20,
@@ -467,7 +466,6 @@ const styles = StyleSheet.create({
     color: '#ECEFF1',
     fontSize: 12,
   },
-
   section: {
     marginTop: 8,
   },
@@ -481,8 +479,6 @@ const styles = StyleSheet.create({
     color: '#B0BEC5',
     fontSize: 13,
   },
-
-  // carrossel de mosaicos concluídos
   badgesHorizontalContent: {
     paddingRight: 16,
   },
@@ -506,8 +502,6 @@ const styles = StyleSheet.create({
     marginTop: 2,
     textAlign: 'center',
   },
-
-  // Modal
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.6)',

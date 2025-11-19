@@ -16,92 +16,62 @@ export type TrackProgress = {
 export type UserData = {
   uid: string;
   name: string;
-
   level: number;
   xp: number;
   streakDays: number;
-
-  // interesses e recomendações
   interests?: string[];
   recommendedTrackIds?: string[];
-
-  // (para fins acadêmicos / mock)
   password?: string;
   cpf?: string;
-
   activeTracksCount: number;
   lessonsCompleted: number;
   areasExplored: number;
-
-  // progresso geral (0–100)
   progress: number;
-
-  // progresso por trilha
   trackProgress: Record<string, TrackProgress>;
-
-  // mosaico atual
   currentMosaicIndex: MosaicIndex;
   currentMosaicPieces: number;
-  currentMosaicHistory: string[]; // cores das peças já conquistadas neste mosaico
-
-  // mosaicos concluídos
+  currentMosaicHistory: string[];
   mosaicBadges: MosaicBadge[];
 };
 
 type UserContextType = {
   user: UserData;
   loading: boolean;
-
-  addPieceToMosaic: (color?: string) => void;
-  resetMosaic: () => void;
   completeLesson: (trackId: string) => void;
-
   updateInterests: (interests: string[]) => void;
   setRecommendedTracks: (trackIds: string[]) => void;
-
   syncFromFirebase?: (data: Partial<UserData>) => void;
 };
 
-// 🎨 pega a cor da trilha (definida em src/data/tracks.ts)
 const getColorForTrack = (trackId: string): string => {
   const track = TRACKS.find((t) => t.id === trackId);
-  // se achar a trilha, usa a cor dela; se não, fallback
   return track?.color ?? '#A3E6D5';
 };
 
 const initialUser: UserData = {
   uid: '123',
   name: 'Fabio',
-
   level: 1,
   xp: 0,
   streakDays: 1,
-
   interests: [],
   recommendedTrackIds: [],
-
   password: undefined,
   cpf: undefined,
-
   activeTracksCount: 0,
   lessonsCompleted: 0,
   areasExplored: 0,
-
   progress: 0,
   trackProgress: {},
-
   currentMosaicIndex: 1,
   currentMosaicPieces: 0,
   currentMosaicHistory: [],
-
   mosaicBadges: [],
 };
 
 const UserContext = createContext<UserContextType>({
   user: initialUser,
   loading: false,
-  addPieceToMosaic: () => {},
-  resetMosaic: () => {},
   completeLesson: () => {},
   updateInterests: () => {},
   setRecommendedTracks: () => {},
@@ -112,76 +82,59 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<UserData>(initialUser);
   const [loading] = useState(false);
 
-  // 🔹 Ganhar uma peça do mosaico
-  const addPieceToMosaic = (color: string = '#A3E6D5') => {
-    setUser((prev) => {
-      const totalNeeded = MOSAICO_SEGMENTS[prev.currentMosaicIndex];
-      const newPieces = prev.currentMosaicPieces + 1;
-      const newHistory = [...prev.currentMosaicHistory, color];
+  // MODIFICAÇÃO: A função completeLesson foi reescrita para ser uma transação atômica.
+  const completeLesson = (trackId: string) => {
+    const color = getColorForTrack(trackId);
+    const trackData = TRACKS.find((t) => t.id === trackId);
 
-      let updated: UserData = {
-        ...prev,
-        currentMosaicPieces: newPieces,
-        currentMosaicHistory: newHistory,
-        xp: prev.xp + 10,
-        progress: Math.min(100, prev.progress + 3),
+    setUser((prev) => {
+      if (!prev) return prev; // Proteção
+
+      // 1. Atualiza progresso da trilha
+      const currentTrackProgress = prev.trackProgress[trackId] ?? {
+        completedLessons: 0,
+      };
+      const newCompleted = currentTrackProgress.completedLessons + 1;
+      const newTrackProgress = {
+        ...prev.trackProgress,
+        [trackId]: { completedLessons: newCompleted },
       };
 
-      // completou o mosaico atual?
+      // 2. Atualiza peças e histórico do mosaico
+      const newPieces = prev.currentMosaicPieces + 1;
+      const newHistory = [...prev.currentMosaicHistory, color];
+      const totalNeeded = MOSAICO_SEGMENTS[prev.currentMosaicIndex];
+
+      let updatedUser: UserData = {
+        ...prev,
+        trackProgress: newTrackProgress,
+        lessonsCompleted: prev.lessonsCompleted + 1,
+        xp: prev.xp + (trackData?.rewardXp ?? 10), // Usa XP da trilha
+        progress: Math.min(100, prev.progress + 5),
+        currentMosaicPieces: newPieces,
+        currentMosaicHistory: newHistory,
+      };
+
+      // 3. Verifica se o mosaico foi completado
       if (newPieces >= totalNeeded) {
-        const badge: MosaicBadge = {
+        const newBadge: MosaicBadge = {
           id: prev.currentMosaicIndex,
           completedAt: new Date().toLocaleDateString('pt-BR'),
           history: newHistory,
         };
 
-        updated = {
-          ...updated,
-          mosaicBadges: [...prev.mosaicBadges, badge],
+        updatedUser = {
+          ...updatedUser,
+          mosaicBadges: [...prev.mosaicBadges, newBadge],
           currentMosaicIndex: (prev.currentMosaicIndex + 1) as MosaicIndex,
           currentMosaicPieces: 0,
           currentMosaicHistory: [],
-          level: prev.level + 1,
+          level: prev.level + 1, // Sobe de nível ao completar um mosaico
         };
       }
 
-      return updated;
+      return updatedUser;
     });
-  };
-
-  const resetMosaic = () => {
-    setUser((prev) => ({
-      ...prev,
-      currentMosaicPieces: 0,
-      currentMosaicHistory: [],
-    }));
-  };
-
-  // 🔹 Concluir 1 aula de uma trilha específica
-  const completeLesson = (trackId: string) => {
-    // 1) update do progresso da trilha, aulas e progress geral
-    setUser((prev) => {
-      const currentTrack = prev.trackProgress[trackId] ?? {
-        completedLessons: 0,
-      };
-      const newCompleted = currentTrack.completedLessons + 1;
-
-      const newTrackProgress: Record<string, TrackProgress> = {
-        ...prev.trackProgress,
-        [trackId]: { completedLessons: newCompleted },
-      };
-
-      return {
-        ...prev,
-        trackProgress: newTrackProgress,
-        lessonsCompleted: prev.lessonsCompleted + 1,
-        progress: Math.min(100, prev.progress + 5),
-      };
-    });
-
-    // 2) dar a peça no mosaico com a cor da trilha
-    const color = getColorForTrack(trackId);
-    addPieceToMosaic(color);
   };
 
   const syncFromFirebase = (data: Partial<UserData>) => {
@@ -189,17 +142,11 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const updateInterests = (interests: string[]) => {
-    setUser((prev) => ({
-      ...prev,
-      interests,
-    }));
+    setUser((prev) => ({ ...prev, interests }));
   };
 
   const setRecommendedTracks = (trackIds: string[]) => {
-    setUser((prev) => ({
-      ...prev,
-      recommendedTrackIds: trackIds,
-    }));
+    setUser((prev) => ({ ...prev, recommendedTrackIds: trackIds }));
   };
 
   return (
@@ -207,8 +154,6 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       value={{
         user,
         loading,
-        addPieceToMosaic,
-        resetMosaic,
         completeLesson,
         updateInterests,
         setRecommendedTracks,
