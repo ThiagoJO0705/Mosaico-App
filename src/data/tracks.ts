@@ -34,10 +34,10 @@ export const TRACKS: Track[] = [
   {
     id: 'ia-fundamentos',
     title: 'Fundamentos de IA',
-    totalLessons: 8,
+    totalLessons: 22,
     difficulty: 'Iniciante',
     area: 'Tecnologia',
-    durationMinutes: 240,
+    durationMinutes: 600,
     rewardPieces: 1,
     rewardXp: 80,
     description: 'Entenda os conceitos essenciais de inteligência artificial.',
@@ -46,10 +46,10 @@ export const TRACKS: Track[] = [
   {
     id: 'softskills-futuro',
     title: 'Soft Skills para o Futuro',
-    totalLessons: 6,
+    totalLessons: 18,
     difficulty: 'Intermediário',
     area: 'Soft Skills',
-    durationMinutes: 180,
+    durationMinutes: 540,
     rewardPieces: 1,
     rewardXp: 60,
     description:
@@ -59,10 +59,10 @@ export const TRACKS: Track[] = [
   {
     id: 'esg-basico',
     title: 'ESG e Sustentabilidade',
-    totalLessons: 5,
+    totalLessons: 15,
     difficulty: 'Iniciante',
     area: 'ESG',
-    durationMinutes: 150,
+    durationMinutes: 250,
     rewardPieces: 1,
     rewardXp: 50,
     description:
@@ -72,7 +72,7 @@ export const TRACKS: Track[] = [
   {
     id: 'dados-essenciais',
     title: 'Dados para Decisão',
-    totalLessons: 7,
+    totalLessons: 16,
     difficulty: 'Intermediário',
     area: 'Dados',
     durationMinutes: 210,
@@ -85,10 +85,10 @@ export const TRACKS: Track[] = [
   {
     id: 'lideranca-1',
     title: 'Liderança na Prática',
-    totalLessons: 8,
+    totalLessons: 12,
     difficulty: 'Intermediário',
     area: 'Liderança',
-    durationMinutes: 240,
+    durationMinutes: 320,
     rewardPieces: 1,
     rewardXp: 80,
     description:
@@ -98,7 +98,7 @@ export const TRACKS: Track[] = [
   {
     id: 'produtividade-adv',
     title: 'Produtividade Inteligente',
-    totalLessons: 6,
+    totalLessons: 9,
     difficulty: 'Iniciante',
     area: 'Produtividade',
     durationMinutes: 180,
@@ -111,10 +111,10 @@ export const TRACKS: Track[] = [
   {
     id: 'comunicacao-oratoria',
     title: 'Comunicação & Oratória',
-    totalLessons: 7,
+    totalLessons: 19,
     difficulty: 'Intermediário',
     area: 'Soft Skills',
-    durationMinutes: 210,
+    durationMinutes: 450,
     rewardPieces: 1,
     rewardXp: 70,
     description:
@@ -124,10 +124,10 @@ export const TRACKS: Track[] = [
   {
     id: 'ia-no-dia-a-dia',
     title: 'IA no Dia a Dia',
-    totalLessons: 5,
+    totalLessons: 21,
     difficulty: 'Iniciante',
     area: 'Tecnologia',
-    durationMinutes: 150,
+    durationMinutes: 450,
     rewardPieces: 1,
     rewardXp: 50,
     description:
