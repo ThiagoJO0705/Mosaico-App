@@ -8,35 +8,31 @@ import {
   ScrollView,
   ActivityIndicator,
 } from 'react-native';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { AuthStackParamList } from '../types/navigation';
+import { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack';
+import { AuthStackParamList } from '../navigation/AuthStack';
+import { RootStackParamList } from '../navigation/RootNavigator';
 import { useUser } from '../context/UserContext';
 import { TRACKS } from '../data/tracks';
 
-type Props = NativeStackScreenProps<AuthStackParamList, 'Interests'>;
+// O tipo `Props` é uma UNIÃO, aceitando as props de ambos os navegadores.
+type Props =
+  | NativeStackScreenProps<AuthStackParamList, 'Interests'>
+  | NativeStackScreenProps<RootStackParamList, 'Interests'>;
 
-// MODIFICAÇÃO: Adicionadas as 4 novas áreas de interesse
 const INTEREST_OPTIONS = [
-  'Tecnologia',
-  'Soft Skills',
-  'ESG',
-  'Dados',
-  'Liderança',
-  'Produtividade',
-  'Marketing & Vendas',
-  'Finanças & Investimentos',
-  'Design & UX',
-  'Inovação & Empreendedorismo',
+  'Tecnologia', 'Soft Skills', 'ESG', 'Dados', 'Liderança', 'Produtividade',
+  'Marketing & Vendas', 'Finanças & Investimentos', 'Design & UX', 'Inovação & Empreendedorismo',
 ];
 
-const GEMINI_API_URL =
-  'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=YOUR_GEMINI_API_KEY';
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=YOUR_GEMINI_API_KEY';
 
-const InterestsScreen: React.FC<Props> = ({ navigation, route }) => {
-  const { form } = route.params;
-  const { updateInterests, setRecommendedTracks } = useUser();
+const InterestsScreen = ({ navigation, route }: Props) => {
+  const { user, updateInterests, setRecommendedTracks } = useUser();
 
-  const [selected, setSelected] = useState<string[]>([]);
+  const isEditMode = 'editMode' in route.params;
+
+  const initialInterests = isEditMode ? (user.interests ?? []) : [];
+  const [selected, setSelected] = useState<string[]>(initialInterests);
   const [loading, setLoading] = useState(false);
 
   const toggleInterest = (value: string) => {
@@ -48,12 +44,18 @@ const InterestsScreen: React.FC<Props> = ({ navigation, route }) => {
   };
 
   const handleFinish = async () => {
-    if (selected.length === 0) {
+    if (selected.length === 0) return;
+
+    setLoading(true);
+    updateInterests(selected);
+
+    if (isEditMode) {
+      setLoading(false);
+      navigation.goBack();
       return;
     }
 
-    updateInterests(selected);
-    setLoading(true);
+    const { form } = route.params as AuthStackParamList['Interests'];
     let recommendedIds: string[] = [];
 
     try {
@@ -94,7 +96,9 @@ Responda APENAS um JSON no formato:
           }
         } catch {}
       }
-    } catch (e) {}
+    } catch (e) {
+      console.error("Erro na chamada da API Gemini:", e);
+    }
 
     if (recommendedIds.length === 0) {
       recommendedIds = TRACKS.filter((t) =>
@@ -106,7 +110,10 @@ Responda APENAS um JSON no formato:
 
     setRecommendedTracks(recommendedIds);
     setLoading(false);
-    navigation.replace('AppRoot');
+
+    // MODIFICAÇÃO: Usamos uma afirmação de tipo para dizer ao TypeScript
+    // que, neste ponto do código, 'navigation' é do tipo do AuthStack.
+    (navigation as NativeStackNavigationProp<AuthStackParamList>).replace('AppRoot');
   };
 
   return (
@@ -114,9 +121,11 @@ Responda APENAS um JSON no formato:
       style={styles.container}
       contentContainerStyle={styles.content}
     >
-      <Text style={styles.title}>Quais são os seus interesses?</Text>
+      <Text style={styles.title}>
+        {isEditMode ? 'Atualize seus interesses' : 'Quais são os seus interesses?'}
+      </Text>
       <Text style={styles.subtitle}>
-        Vamos recomendar trilhas que combinem com o seu momento.
+        {isEditMode ? 'Suas recomendações serão ajustadas.' : 'Vamos recomendar trilhas que combinem com o seu momento.'}
       </Text>
 
       <View style={styles.chipsContainer}>
@@ -152,13 +161,13 @@ Responda APENAS um JSON no formato:
           <ActivityIndicator color="#1C2A3A" />
         ) : (
           <Text style={styles.primaryButtonText}>
-            Continuar para o MOSAICO
+            {isEditMode ? 'Salvar Alterações' : 'Continuar para o MOSAICO'}
           </Text>
         )}
       </TouchableOpacity>
 
       <Text style={styles.footerHint}>
-        Você poderá alterar suas preferências depois.
+        {isEditMode ? 'Suas novas preferências serão salvas.' : 'Você poderá alterar suas preferências depois.'}
       </Text>
     </ScrollView>
   );
