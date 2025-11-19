@@ -1,14 +1,17 @@
+// App.tsx
 import 'react-native-gesture-handler';
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
-import RootNavigator from './src/navigation/RootNavigator';
 import { UserProvider } from './src/context/UserContext';
+
+import AuthStackNavigator from './src/navigation/AuthStack';
 
 export default function App() {
   return (
     <UserProvider>
       <NavigationContainer>
-        <RootNavigator />
+        {/* 👇 agora o fluxo começa no stack de autenticação */}
+        <AuthStackNavigator />
       </NavigationContainer>
     </UserProvider>
   );

@@ -2,7 +2,17 @@ export type AuthStackParamList = {
   Splash: undefined;
   Login: undefined;
   Register: undefined;
-  AppTabs: undefined; // usado no replace depois do login
+
+  Interests: {
+    form: {
+      name: string;
+      email: string;
+      cpf: string;
+      password: string;
+    };
+  };
+
+  AppTabs: undefined;
 };
 
 export type AppTabsParamList = {
