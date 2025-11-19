@@ -45,6 +45,7 @@ const AuthStackNavigator: React.FC = () => {
 
       {/* app principal (seu RootNavigator com Tabs + Mosaic) */}
       <Stack.Screen name="AppRoot" component={RootNavigator} />
+
     </Stack.Navigator>
   );
 };

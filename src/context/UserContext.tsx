@@ -1,12 +1,12 @@
 // src/context/UserContext.tsx
 import React, { createContext, useContext, useState } from 'react';
 import { MOSAICO_SEGMENTS, MosaicIndex } from '../utils/mosaicConfig';
-import { TRACKS } from '../data/tracks'; // 👈 adiciona isso
+import { TRACKS } from '../data/tracks';
 
 export type MosaicBadge = {
   id: MosaicIndex;
   completedAt: string;
-  history: string[]; // 🔹 novo: histórico de cores daquele mosaico
+  history: string[]; // histórico de cores daquele mosaico
 };
 
 export type TrackProgress = {
@@ -21,17 +21,30 @@ export type UserData = {
   xp: number;
   streakDays: number;
 
+  // interesses e recomendações
+  interests?: string[];
+  recommendedTrackIds?: string[];
+
+  // (para fins acadêmicos / mock)
+  password?: string;
+  cpf?: string;
+
   activeTracksCount: number;
   lessonsCompleted: number;
   areasExplored: number;
 
+  // progresso geral (0–100)
   progress: number;
+
+  // progresso por trilha
   trackProgress: Record<string, TrackProgress>;
 
+  // mosaico atual
   currentMosaicIndex: MosaicIndex;
   currentMosaicPieces: number;
-  currentMosaicHistory: string[];
+  currentMosaicHistory: string[]; // cores das peças já conquistadas neste mosaico
 
+  // mosaicos concluídos
   mosaicBadges: MosaicBadge[];
 };
 
@@ -43,13 +56,16 @@ type UserContextType = {
   resetMosaic: () => void;
   completeLesson: (trackId: string) => void;
 
+  updateInterests: (interests: string[]) => void;
+  setRecommendedTracks: (trackIds: string[]) => void;
+
   syncFromFirebase?: (data: Partial<UserData>) => void;
 };
 
-// 🎨 mapa de cores por trilha — ajuste os IDs para bater com o seu TRACKS
+// 🎨 pega a cor da trilha (definida em src/data/tracks.ts)
 const getColorForTrack = (trackId: string): string => {
   const track = TRACKS.find((t) => t.id === trackId);
-  // se achar a trilha, usa a cor dela; se não, cai num fallback
+  // se achar a trilha, usa a cor dela; se não, fallback
   return track?.color ?? '#A3E6D5';
 };
 
@@ -60,6 +76,12 @@ const initialUser: UserData = {
   level: 1,
   xp: 0,
   streakDays: 1,
+
+  interests: [],
+  recommendedTrackIds: [],
+
+  password: undefined,
+  cpf: undefined,
 
   activeTracksCount: 0,
   lessonsCompleted: 0,
@@ -81,6 +103,9 @@ const UserContext = createContext<UserContextType>({
   addPieceToMosaic: () => {},
   resetMosaic: () => {},
   completeLesson: () => {},
+  updateInterests: () => {},
+  setRecommendedTracks: () => {},
+  syncFromFirebase: () => {},
 });
 
 export const UserProvider = ({ children }: { children: React.ReactNode }) => {
@@ -107,7 +132,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
         const badge: MosaicBadge = {
           id: prev.currentMosaicIndex,
           completedAt: new Date().toLocaleDateString('pt-BR'),
-          history: newHistory, // 🔹 guarda as cores do mosaico completo
+          history: newHistory,
         };
 
         updated = {
@@ -163,6 +188,20 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     setUser((prev) => ({ ...prev, ...data }));
   };
 
+  const updateInterests = (interests: string[]) => {
+    setUser((prev) => ({
+      ...prev,
+      interests,
+    }));
+  };
+
+  const setRecommendedTracks = (trackIds: string[]) => {
+    setUser((prev) => ({
+      ...prev,
+      recommendedTrackIds: trackIds,
+    }));
+  };
+
   return (
     <UserContext.Provider
       value={{
@@ -171,6 +210,8 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
         addPieceToMosaic,
         resetMosaic,
         completeLesson,
+        updateInterests,
+        setRecommendedTracks,
         syncFromFirebase,
       }}
     >
