@@ -14,7 +14,7 @@ import {
   ScrollView,
 } from "react-native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { AuthStackParamList } from "../navigation/AuthStack"; // Ajuste o caminho se necessário
+import { AuthStackParamList } from "../navigation/AuthStack";
 import Logo from "../../assets/logo.png";
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
@@ -23,45 +23,90 @@ import { UserData } from "../context/UserContext";
 
 type Props = NativeStackScreenProps<AuthStackParamList, "Register">;
 
+// Helpers simples de validação
+const isValidEmail = (email: string) => /\S+@\S+\.\S+/.test(email);
+const isStrongPassword = (password: string) => password.length >= 6;
+const onlyDigits = (value: string) => value.replace(/\D/g, "");
+const isValidCPF = (cpf: string) => /^\d{11}$/.test(cpf); // 11 dígitos
+
 const RegisterScreen = ({ navigation }: Props) => {
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");   // 🔹 NOVO
   const [cpf, setCpf] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleNextStep = async () => {
-    // Validações simples para cada etapa
-    if (step === 1 && name.trim().length < 3) {
-      Alert.alert('Nome inválido', 'Por favor, insira seu nome completo.');
-      return;
-    }
-    if (step === 2 && !email.includes('@')) {
-      Alert.alert('E-mail inválido', 'Por favor, insira um e-mail válido.');
-      return;
-    }
-    if (step === 3 && password.length < 6) {
-      Alert.alert('Senha fraca', 'Sua senha deve ter no mínimo 6 caracteres.');
-      return;
+    // 🔎 Validações por etapa
+    if (step === 1) {
+      const trimmedName = name.trim();
+      if (trimmedName.length < 3) {
+        Alert.alert('Nome inválido', 'Por favor, insira seu nome completo (mínimo 3 caracteres).');
+        return;
+      }
     }
 
+    if (step === 2) {
+      const trimmedEmail = email.trim().toLowerCase();
+      if (!isValidEmail(trimmedEmail)) {
+        Alert.alert('E-mail inválido', 'Por favor, insira um e-mail válido (ex: nome@dominio.com).');
+        return;
+      }
+    }
+
+    if (step === 3) {
+      if (!isStrongPassword(password)) {
+        Alert.alert(
+          'Senha fraca',
+          'Sua senha deve ter no mínimo 6 caracteres.'
+        );
+        return;
+      }
+
+      if (password !== confirmPassword) {
+        Alert.alert(
+          'Senhas diferentes',
+          'A confirmação de senha não confere. Digite a mesma senha nos dois campos.'
+        );
+        return;
+      }
+    }
+
+    if (step === 4) {
+      const cleanedCpf = onlyDigits(cpf);
+      if (!isValidCPF(cleanedCpf)) {
+        Alert.alert(
+          'CPF inválido',
+          'Digite um CPF válido com 11 números (somente dígitos).'
+        );
+        return;
+      }
+    }
+
+    // Se ainda não chegou na última etapa, só avança
     if (step < 4) {
       setStep((prev) => (prev + 1) as 1 | 2 | 3 | 4);
       return;
     }
 
+    // Etapa 4 (final) → efetiva o cadastro
     setLoading(true);
     try {
+      const cleanedCpf = onlyDigits(cpf);
+      const trimmedEmail = email.trim().toLowerCase();
+      const trimmedName = name.trim();
+
       // 1. Cria o usuário no Firebase Authentication
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(auth, trimmedEmail, password);
       const firebaseUser = userCredential.user;
 
-      // 2. Cria o objeto de dados iniciais para o Firestore
+      // 2. Dados iniciais do usuário no Firestore
       const newUserDoc: Omit<UserData, 'uid'> = {
-        name: name.trim(),
-        email: email.toLowerCase().trim(),
-        cpf,
+        name: trimmedName,
+        email: trimmedEmail,
+        cpf: cleanedCpf,
         level: 1,
         xp: 0,
         streakDays: 0,
@@ -74,13 +119,12 @@ const RegisterScreen = ({ navigation }: Props) => {
         mosaicBadges: [],
       };
 
-      // 3. Salva os dados no Firestore na coleção 'users'
       await setDoc(doc(db, 'users', firebaseUser.uid), newUserDoc);
 
-      // 4. MODIFICAÇÃO: A navegação para Interesses foi reintroduzida.
-      // Isso garante que, após o sucesso do cadastro, a próxima tela seja a de interesses.
+      // Aqui você ainda manda para a Interests do AuthStack.
+      // (Se depois quiser, podemos tirar isso e deixar o App/RootNavigator cuidar.)
       navigation.replace("Interests", {
-        form: { name, email, password, cpf },
+        form: { name: trimmedName, email: trimmedEmail, password, cpf: cleanedCpf },
       });
 
     } catch (error: any) {
@@ -145,6 +189,20 @@ const RegisterScreen = ({ navigation }: Props) => {
               returnKeyType="next"
               onSubmitEditing={handleNextStep}
             />
+
+            <Text style={[styles.fieldLabel, { marginTop: 12 }]}>
+              Confirmar senha
+            </Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Digite a mesma senha novamente"
+              placeholderTextColor="#78909C"
+              secureTextEntry
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              returnKeyType="done"
+              onSubmitEditing={handleNextStep}
+            />
           </>
         );
       case 4:
@@ -157,9 +215,10 @@ const RegisterScreen = ({ navigation }: Props) => {
               placeholderTextColor="#78909C"
               keyboardType="numeric"
               value={cpf}
-              onChangeText={setCpf}
+              onChangeText={(text) => setCpf(onlyDigits(text))} // 🔹 só números
               returnKeyType="done"
               onSubmitEditing={handleNextStep}
+              maxLength={11}
             />
           </>
         );
@@ -175,7 +234,7 @@ const RegisterScreen = ({ navigation }: Props) => {
       case 2:
         return "Agora seu e-mail de acesso";
       case 3:
-        return "Defina uma senha segura";
+        return "Defina e confirme sua senha";
       case 4:
         return "Só mais um dado: seu CPF";
     }
