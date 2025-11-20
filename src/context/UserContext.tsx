@@ -1,7 +1,6 @@
-// src/context/UserContext.tsx
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { onAuthStateChanged, signOut, User as FirebaseUser } from 'firebase/auth';
-import { doc, getDoc, setDoc, updateDoc, onSnapshot, Unsubscribe } from 'firebase/firestore'; // Importa onSnapshot
+import { doc, getDoc, setDoc, updateDoc, onSnapshot, Unsubscribe } from 'firebase/firestore'; // Importa Unsubscribe
 import { auth, db } from '../services/firebaseConfig';
 import { MOSAICO_SEGMENTS, MosaicIndex } from '../utils/mosaicConfig';
 import { TRACKS } from '../data/tracks';
@@ -60,26 +59,24 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // MODIFICAÇÃO: Declaramos a função de unsubscribe aqui fora
     let unsubscribeFirestore: Unsubscribe | undefined;
 
     const unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser: FirebaseUser | null) => {
-      // Se um listener do firestore de um usuário anterior existir, cancela a inscrição
+      // Sempre que o estado de auth mudar, primeiro limpamos qualquer listener antigo.
       if (unsubscribeFirestore) {
         unsubscribeFirestore();
       }
 
       if (firebaseUser) {
-        // Usuário logou. Anexamos um listener ao seu documento no Firestore.
         const userDocRef = doc(db, 'users', firebaseUser.uid);
         
-        // onSnapshot cria uma conexão em tempo real.
+        // Atribuímos a nova função de unsubscribe à nossa variável
         unsubscribeFirestore = onSnapshot(userDocRef, (doc) => {
           if (doc.exists()) {
-            // Sempre que o documento mudar no Firebase, este código roda e atualiza o estado.
             setUser({ uid: doc.id, ...doc.data() } as UserData);
           } else {
-            console.error("Usuário autenticado mas sem dados no Firestore!");
-            setUser(null); // Força o logout se os dados não existirem
+            setUser(null);
           }
           setLoading(false);
         }, (error) => {
@@ -87,15 +84,13 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
           setUser(null);
           setLoading(false);
         });
-
       } else {
-        // Usuário deslogou.
         setUser(null);
         setLoading(false);
       }
     });
 
-    // Limpa o listener de autenticação quando o componente principal do app for desmontado
+    // A função de limpeza do useEffect principal garante que o listener de auth seja removido
     return () => unsubscribeAuth();
   }, []);
 

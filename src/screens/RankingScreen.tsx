@@ -1,20 +1,22 @@
 // src/screens/RankingScreen.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   FlatList,
   ActivityIndicator,
-  Image,
+  TouchableOpacity,
 } from 'react-native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../navigation/RootNavigator';
 import { useUser } from '../context/UserContext';
 import { db } from '../services/firebaseConfig';
 import { collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
-import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../styles/colors';
+import { LEVEL_DATA } from '../utils/xpConfig';
 
-// Define a estrutura de dados para um usuário no ranking
 type RankedUser = {
   id: string;
   name: string;
@@ -22,41 +24,45 @@ type RankedUser = {
   xp: number;
 };
 
+type RankingScreenNavigationProp = NativeStackNavigationProp<RootStackParamList>;
+
 const RankingScreen: React.FC = () => {
-  const { user: currentUser } = useUser(); // Pega o usuário logado para destacá-lo
+  const navigation = useNavigation<RankingScreenNavigationProp>();
+  const { user: currentUser } = useUser();
   const [leaderboard, setLeaderboard] = useState<RankedUser[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchLeaderboard = async () => {
-      try {
-        // Cria uma referência para a coleção 'users'
-        const usersCollection = collection(db, 'users');
+  const fetchLeaderboard = useCallback(() => {
+    setLoading(true);
+    const usersCollection = collection(db, 'users');
+    const q = query(usersCollection, orderBy('xp', 'desc'), limit(50));
 
-        // Cria a query: ordenar por 'xp' em ordem decrescente e pegar os top 50
-        const q = query(usersCollection, orderBy('xp', 'desc'), limit(50));
-
-        const querySnapshot = await getDocs(q);
-        
+    getDocs(q)
+      .then((querySnapshot) => {
         const leaderboardData = querySnapshot.docs.map(doc => ({
           id: doc.id,
           name: doc.data().name,
           level: doc.data().level,
           xp: doc.data().xp,
         })) as RankedUser[];
-        
         setLeaderboard(leaderboardData);
-      } catch (error) {
+      })
+      .catch((error) => {
         console.error("Erro ao buscar o ranking:", error);
-      } finally {
+      })
+      .finally(() => {
         setLoading(false);
-      }
-    };
-
-    fetchLeaderboard();
+      });
   }, []);
 
-  if (loading) {
+  useFocusEffect(
+    useCallback(() => {
+      fetchLeaderboard();
+      return () => {};
+    }, [fetchLeaderboard])
+  );
+  
+  if (loading && leaderboard.length === 0) {
     return (
       <View style={[styles.container, { justifyContent: 'center' }]}>
         <ActivityIndicator size="large" color={colors.primary} />
@@ -72,9 +78,15 @@ const RankingScreen: React.FC = () => {
     if (rank === 1) rankIcon = '🏆';
     else if (rank === 2) rankIcon = '🥈';
     else if (rank === 3) rankIcon = '🥉';
+    
+    const levelTitle = LEVEL_DATA[item.level]?.title ?? '';
 
     return (
-      <View style={[styles.rankItem, isCurrentUser && styles.currentUserItem]}>
+      <TouchableOpacity
+        style={[styles.rankItem, isCurrentUser && styles.currentUserItem]}
+        onPress={() => navigation.navigate('PublicProfile', { userId: item.id })}
+        activeOpacity={0.7}
+      >
         <View style={styles.rankPosition}>
           {rankIcon ? (
             <Text style={styles.rankEmoji}>{rankIcon}</Text>
@@ -84,10 +96,12 @@ const RankingScreen: React.FC = () => {
         </View>
         <View style={styles.rankDetails}>
           <Text style={styles.rankName}>{item.name}</Text>
-          <Text style={styles.rankLevel}>Nível {item.level}</Text>
+          <Text style={styles.rankLevel}>
+            Nível {item.level} {levelTitle ? `· ${levelTitle}` : ''}
+          </Text>
         </View>
         <Text style={styles.rankXp}>{item.xp} XP</Text>
-      </View>
+      </TouchableOpacity>
     );
   };
 
@@ -95,6 +109,8 @@ const RankingScreen: React.FC = () => {
     <View style={styles.container}>
       <Text style={styles.title}>Ranking Geral</Text>
       <Text style={styles.subtitle}>Os 50 maiores construtores do MOSAICO</Text>
+      
+      {loading && leaderboard.length > 0 && <ActivityIndicator style={{ marginVertical: 10 }} color={colors.primary} />}
 
       <FlatList
         data={leaderboard}
@@ -141,7 +157,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   currentUserItem: {
-    backgroundColor: '#3E8A81', // Cor de destaque para o usuário atual
+    backgroundColor: '#3E8A81',
     borderColor: colors.primary,
     borderWidth: 1,
   },
