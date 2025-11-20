@@ -1,5 +1,4 @@
 // src/screens/ProfileScreen.tsx
-
 import React, { useMemo } from "react";
 import {
   View,
@@ -8,6 +7,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
+  ActivityIndicator, // Importa o componente de carregamento
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useUser } from "../context/UserContext";
@@ -16,24 +16,31 @@ import { colors } from "../styles/colors";
 import { Ionicons } from "@expo/vector-icons";
 import { TRACKS } from "../data/tracks";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-// MODIFICAÇÃO: Importa o tipo correto do seu navegador principal
 import { RootStackParamList } from "../navigation/RootNavigator";
 
-// MODIFICAÇÃO: Usa o tipo correto para a propriedade de navegação, dando autocomplete e segurança
 type ProfileScreenNavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 const ProfileScreen: React.FC = () => {
   const navigation = useNavigation<ProfileScreenNavigationProp>();
   const { user, logout } = useUser();
 
+  // MODIFICAÇÃO PRINCIPAL: Verificação de segurança
+  // Se o usuário não existir, mostra uma tela de carregamento.
+  if (!user) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={colors.secondary} />
+      </View>
+    );
+  }
+
+  // A partir daqui, 'user' é garantidamente um objeto UserData.
   const currentIndex = user.currentMosaicIndex as MosaicIndex;
   const currentPieces = user.currentMosaicPieces;
   const totalSegmentsCurrent = MOSAICO_SEGMENTS[currentIndex];
-
   const mosaicBadges = user.mosaicBadges ?? [];
   const totalMosaics = Object.keys(MOSAICO_SEGMENTS).length;
   const allCompleted = mosaicBadges.length >= totalMosaics;
-  
   const userInterests = user.interests ?? [];
 
   const userStats = useMemo(() => {
@@ -80,7 +87,6 @@ const ProfileScreen: React.FC = () => {
     );
   };
   
-  // MODIFICAÇÃO: A função agora navega para a tela de Interesses em modo de edição
   const handleEditInterests = () => {
     navigation.navigate("Interests", { editMode: true });
   };
@@ -182,6 +188,12 @@ const ProfileScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: colors.background,
+  },
   container: {
     flex: 1,
     backgroundColor: colors.background,

@@ -9,13 +9,13 @@ import {
   TouchableOpacity,
   TextInput,
   ScrollView,
+  ActivityIndicator, // Importa o componente de carregamento
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { TRACKS, TrackArea } from '../data/tracks';
 import { useUser } from '../context/UserContext';
 import { useDebounce } from '../hooks/useDebounce';
 
-// MODIFICAÇÃO: Adicionados todos os filtros para corresponder às novas áreas
 const FILTERS: (TrackArea | 'Todas')[] = [
   'Todas',
   'Tecnologia',
@@ -34,6 +34,17 @@ const TracksListScreen: React.FC = () => {
   const { user } = useUser();
   const navigation = useNavigation<any>();
 
+  // MODIFICAÇÃO PRINCIPAL: Verificação de segurança
+  // Se o usuário não estiver carregado, mostra uma tela de carregamento.
+  if (!user) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#4DB6AC" />
+      </View>
+    );
+  }
+
+  // A partir daqui, 'user' é garantidamente um objeto UserData.
   const [search, setSearch] = useState('');
   const [selectedFilter, setSelectedFilter] = useState<(TrackArea | 'Todas')>(
     'Todas',
@@ -113,6 +124,7 @@ const TracksListScreen: React.FC = () => {
           </>
         }
         renderItem={({ item }) => {
+          // Agora é seguro acessar user.trackProgress
           const trackProg =
             user.trackProgress[item.id]?.completedLessons ?? 0;
           const percent = Math.round(
@@ -178,6 +190,12 @@ const TracksListScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#1C2A3A',
+  },
   container: {
     flex: 1,
     backgroundColor: '#1C2A3A',

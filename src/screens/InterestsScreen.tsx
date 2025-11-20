@@ -12,9 +12,7 @@ import { NativeStackNavigationProp, NativeStackScreenProps } from '@react-naviga
 import { AuthStackParamList } from '../navigation/AuthStack';
 import { RootStackParamList } from '../navigation/RootNavigator';
 import { useUser } from '../context/UserContext';
-import { TRACKS } from '../data/tracks';
 
-// O tipo `Props` é uma UNIÃO, aceitando as props de ambos os navegadores.
 type Props =
   | NativeStackScreenProps<AuthStackParamList, 'Interests'>
   | NativeStackScreenProps<RootStackParamList, 'Interests'>;
@@ -24,14 +22,22 @@ const INTEREST_OPTIONS = [
   'Marketing & Vendas', 'Finanças & Investimentos', 'Design & UX', 'Inovação & Empreendedorismo',
 ];
 
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=YOUR_GEMINI_API_KEY';
-
 const InterestsScreen = ({ navigation, route }: Props) => {
-  const { user, updateInterests, setRecommendedTracks } = useUser();
+  const { user, updateInterestsAndRecommendations } = useUser();
 
-  const isEditMode = 'editMode' in route.params;
+  // ✅ forma segura de detectar editMode (pode não vir params)
+ 
+const isEditMode = (route as any)?.params?.editMode === true;
 
-  const initialInterests = isEditMode ? (user.interests ?? []) : [];
+  if (isEditMode && !user) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#4DB6AC" />
+      </View>
+    );
+  }
+  
+  const initialInterests = isEditMode && user ? (user.interests ?? []) : [];
   const [selected, setSelected] = useState<string[]>(initialInterests);
   const [loading, setLoading] = useState(false);
 
@@ -43,78 +49,24 @@ const InterestsScreen = ({ navigation, route }: Props) => {
     );
   };
 
-  const handleFinish = async () => {
-    if (selected.length === 0) return;
 
-    setLoading(true);
-    updateInterests(selected);
+const handleFinish = async () => {
+  if (selected.length === 0) return;
 
-    if (isEditMode) {
-      setLoading(false);
-      navigation.goBack();
-      return;
-    }
+  setLoading(true);
+  await updateInterestsAndRecommendations(selected);
 
-    const { form } = route.params as AuthStackParamList['Interests'];
-    let recommendedIds: string[] = [];
-
-    try {
-      const trackListForPrompt = TRACKS.map(
-        (t) => `${t.id} (${t.area})`,
-      ).join(', ');
-
-      const prompt = `
-O usuário acabou de se cadastrar no app MOSAICO.
-Áreas de interesse selecionadas: ${selected.join(', ')}.
-
-Temos as seguintes trilhas disponíveis (id - área):
-${trackListForPrompt}.
-
-Escolha de 2 a 4 trilhas que façam mais sentido para esse usuário.
-Responda APENAS um JSON no formato:
-{"tracks":["id-1","id-2","id-3"]}.
-`;
-
-      const resp = await fetch(GEMINI_API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-        }),
-      });
-
-      if (resp.ok) {
-        const data = await resp.json();
-        const text =
-          data?.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
-        try {
-          const parsed = JSON.parse(text);
-          if (parsed && Array.isArray(parsed.tracks)) {
-            recommendedIds = parsed.tracks.filter((id: string) =>
-              TRACKS.some((t) => t.id === id),
-            );
-          }
-        } catch {}
-      }
-    } catch (e) {
-      console.error("Erro na chamada da API Gemini:", e);
-    }
-
-    if (recommendedIds.length === 0) {
-      recommendedIds = TRACKS.filter((t) =>
-        selected.includes(t.area),
-      )
-        .slice(0, 3)
-        .map((t) => t.id);
-    }
-
-    setRecommendedTracks(recommendedIds);
-    setLoading(false);
-
-    // MODIFICAÇÃO: Usamos uma afirmação de tipo para dizer ao TypeScript
-    // que, neste ponto do código, 'navigation' é do tipo do AuthStack.
-    (navigation as NativeStackNavigationProp<AuthStackParamList>).replace('AppRoot');
-  };
+  if (isEditMode) {
+    // Edição (veio do Perfil / outra tela do app)
+    navigation.goBack();
+  } else {
+    // Onboarding (primeira vez escolhendo interesses)
+    (navigation as any).reset({
+      index: 0,
+      routes: [{ name: 'Tabs' }],
+    });
+  }
+};
 
   return (
     <ScrollView
@@ -174,6 +126,12 @@ Responda APENAS um JSON no formato:
 };
 
 const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#1C2A3A',
+  },
   container: {
     flex: 1,
     backgroundColor: '#1C2A3A',

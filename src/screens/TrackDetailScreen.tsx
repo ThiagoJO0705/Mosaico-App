@@ -7,6 +7,7 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  ActivityIndicator, // Importa o componente de carregamento
 } from 'react-native';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { TRACKS } from '../data/tracks';
@@ -27,25 +28,33 @@ const TrackDetailScreen: React.FC = () => {
     [trackId],
   );
 
-  if (!track) {
+  // MODIFICAÇÃO PRINCIPAL: Adicionamos a verificação de segurança.
+  // Se o usuário ainda não carregou, ou a trilha não foi encontrada, mostramos um estado de carregamento/erro.
+  if (!user || !track) {
     return (
-      <View style={[styles.container, { justifyContent: 'center' }]}>
-        <Text style={styles.errorText}>
-          Trilhas não encontrada. Tente voltar e selecionar novamente.
-        </Text>
+      <View style={[styles.container, styles.loadingContainer]}>
+        {!track ? (
+          <Text style={styles.errorText}>
+            Trilha não encontrada. Tente voltar e selecionar novamente.
+          </Text>
+        ) : (
+          <ActivityIndicator size="large" color="#4DB6AC" />
+        )}
       </View>
     );
   }
 
+  // A partir daqui, 'user' e 'track' garantidamente existem.
   const trackProg = user.trackProgress[track.id]?.completedLessons ?? 0;
   const percent = Math.round((trackProg / track.totalLessons) * 100);
   const clampedPercent = isNaN(percent) ? 0 : percent;
   const isCompleted = trackProg >= track.totalLessons;
 
   const handleStartOrContinue = () => {
-    // Aqui você pode, futuramente, navegar para a tela de aulas.
-    // Por enquanto, vou simular progresso com +1 aula:
-    completeLesson(track.id);
+    if (!isCompleted) {
+      // Só permite completar a aula se a trilha não estiver concluída
+      completeLesson(track.id);
+    }
   };
 
   return (
@@ -53,7 +62,7 @@ const TrackDetailScreen: React.FC = () => {
       {/* Header simples com "voltar" */}
       <View style={styles.headerRow}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={styles.backText}>⟵ Voltar</Text>
+          <Text style={styles.backText}>⟵ Voltar para Trilhas</Text>
         </TouchableOpacity>
       </View>
 
@@ -74,7 +83,7 @@ const TrackDetailScreen: React.FC = () => {
         <View style={styles.metaChip}>
           <Text style={styles.metaLabel}>Carga horária</Text>
           <Text style={styles.metaValue}>
-            {Math.round(track.durationMinutes / 60)}h
+            ~{Math.round(track.durationMinutes / 60)}h
           </Text>
         </View>
       </View>
@@ -99,8 +108,7 @@ const TrackDetailScreen: React.FC = () => {
       <View style={styles.progressCard}>
         <Text style={styles.progressTitle}>Seu progresso</Text>
         <Text style={styles.progressSubtitle}>
-          {trackProg}/{track.totalLessons} aulas concluídas (
-          {clampedPercent}%)
+          {trackProg}/{track.totalLessons} aulas concluídas ({clampedPercent}%)
         </Text>
 
         <View style={styles.progressBarBackground}>
@@ -124,6 +132,7 @@ const TrackDetailScreen: React.FC = () => {
           isCompleted && styles.mainButtonCompleted,
         ]}
         onPress={handleStartOrContinue}
+        disabled={isCompleted} // Desabilita o botão se a trilha já foi concluída
         activeOpacity={0.9}
       >
         <Text
@@ -132,7 +141,7 @@ const TrackDetailScreen: React.FC = () => {
             isCompleted && styles.mainButtonTextCompleted,
           ]}
         >
-          {isCompleted ? 'Trilha concluída ✅' : 'Começar / continuar trilha'}
+          {isCompleted ? 'Trilha concluída ✅' : `Concluir aula #${trackProg + 1}`}
         </Text>
       </TouchableOpacity>
 
@@ -142,6 +151,10 @@ const TrackDetailScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
+  loadingContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   container: {
     flex: 1,
     backgroundColor: '#1C2A3A',
@@ -241,7 +254,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   mainButtonCompleted: {
-    backgroundColor: '#2E7D32',
+    backgroundColor: '#2A3B4C', // Cor diferente para o estado concluído
+    borderWidth: 1,
+    borderColor: '#2E7D32',
   },
   mainButtonText: {
     color: '#1C2A3A',
@@ -249,7 +264,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   mainButtonTextCompleted: {
-    color: '#E8F5E9',
+    color: '#A3E6D5', // Cor diferente para o texto
   },
   errorText: {
     color: '#F5F5F5',

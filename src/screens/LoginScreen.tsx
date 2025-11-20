@@ -10,10 +10,14 @@ import {
   Platform,
   Image,
   Animated,
-  ScrollView, // 1. IMPORTAR ScrollView
+  ScrollView,
+  Alert, // Importa o Alert
+  ActivityIndicator, // Importa o ActivityIndicator
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { AuthStackParamList } from '../types/navigation';
+import { AuthStackParamList } from '../navigation/AuthStack'; // Ajuste o caminho se necessário
+import { signInWithEmailAndPassword } from 'firebase/auth'; // Importa a função de login
+import { auth } from '../services/firebaseConfig'; // Importa a instância do auth
 
 const Logo = require('../../assets/logo.png');
 
@@ -22,6 +26,7 @@ type Props = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 const LoginScreen: React.FC<Props> = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false); // Adiciona estado de loading
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
@@ -33,8 +38,30 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
     }).start();
   }, []);
 
-  const handleLogin = () => {
-    navigation.replace('AppRoot');
+  const handleLogin = async () => {
+    // Validação básica
+    if (!email || !password) {
+      Alert.alert("Campos vazios", "Por favor, preencha seu e-mail e senha.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Tenta fazer o login com o Firebase Authentication
+      await signInWithEmailAndPassword(auth, email.trim(), password);
+      // SUCESSO! Não fazemos mais nada aqui.
+      // O listener onAuthStateChanged no UserContext vai cuidar da navegação.
+    } catch (error: any) {
+      // Trata os erros mais comuns de login
+      console.error("Erro de login no Firebase:", error.code);
+      if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+        Alert.alert("Erro de Login", "E-mail ou senha incorretos. Por favor, tente novamente.");
+      } else {
+        Alert.alert("Erro de Login", "Ocorreu um erro inesperado. Verifique sua conexão.");
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -42,20 +69,17 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      {/* 2. ENVOLVER O CONTEÚDO EM UM SCROLLVIEW */}
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
         keyboardShouldPersistTaps="handled"
       >
         <Animated.View style={[styles.centerContent, { opacity: fadeAnim }]}>
-          {/* LOGO */}
           <Image source={Logo} style={styles.logoImage} />
           <Text style={styles.appName}>MOSAICO</Text>
           <Text style={styles.logoSubtitle}>
             Construa seu futuro peça por peça
           </Text>
 
-          {/* FORM */}
           <View style={styles.form}>
             <Text style={styles.label}>E-mail</Text>
             <TextInput
@@ -78,8 +102,16 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
               onChangeText={setPassword}
             />
 
-            <TouchableOpacity style={styles.button} onPress={handleLogin}>
-              <Text style={styles.buttonText}>Entrar</Text>
+            <TouchableOpacity 
+              style={[styles.button, loading && styles.buttonDisabled]} 
+              onPress={handleLogin}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator color="#1C2A3A" />
+              ) : (
+                <Text style={styles.buttonText}>Entrar</Text>
+              )}
             </TouchableOpacity>
 
             <View style={styles.footerRow}>
@@ -100,13 +132,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#1C2A3A',
   },
-  // 3. ESTILO PARA O CONTEÚDO DO SCROLLVIEW
   scrollContainer: {
-    flexGrow: 1, // Garante que o conteúdo possa crescer para preencher a tela
-    justifyContent: 'center', // Centraliza verticalmente
+    flexGrow: 1,
+    justifyContent: 'center',
   },
   centerContent: {
-    // Não precisa mais de flex: 1, pois o scrollContainer já cuida disso
     alignItems: 'center',
     paddingHorizontal: 24,
   },
@@ -152,6 +182,9 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     paddingVertical: 14,
     alignItems: 'center',
+  },
+  buttonDisabled: {
+    backgroundColor: '#3E8A81',
   },
   buttonText: {
     color: '#1C2A3A',

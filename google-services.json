@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "705279649458",
+    "project_id": "mosaico-bdffd",
+    "storage_bucket": "mosaico-bdffd.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:705279649458:android:5f78d2e03e08ab4d8f4bab",
+        "android_client_info": {
+          "package_name": "com.tpgn.mosaico"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCMdh5vGyF-TxSQ_f6X_JDZkvHkTeJpLFI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

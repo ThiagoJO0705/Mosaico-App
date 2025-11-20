@@ -6,19 +6,32 @@ import TabsNavigator from './TabsNavigator';
 import MosaicScreen from '../screens/MosaicScreen';
 import TrackDetailScreen from '../screens/TrackDetailScreen';
 import InterestsScreen from '../screens/InterestsScreen';
+import { useUser } from '../context/UserContext';
 
 export type RootStackParamList = {
   Tabs: undefined;
   Mosaic: undefined;
   TrackDetail: { trackId: string };
-  Interests: { editMode: true };
+  Interests: { editMode?: boolean } | undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function RootNavigator() {
+  const { user } = useUser();
+
+  const isNewUserOnboarding =
+    user && (!user.interests || user.interests.length === 0);
+
+  const initialRouteName: keyof RootStackParamList = isNewUserOnboarding
+    ? 'Interests'
+    : 'Tabs';
+
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator
+      initialRouteName={initialRouteName}
+      screenOptions={{ headerShown: false }}
+    >
       <Stack.Screen name="Tabs" component={TabsNavigator} />
       <Stack.Screen name="Mosaic" component={MosaicScreen} />
       <Stack.Screen name="TrackDetail" component={TrackDetailScreen} />
@@ -27,11 +40,9 @@ export default function RootNavigator() {
         component={InterestsScreen}
         options={{
           headerShown: true,
-          title: 'Editar Interesses',
+          title: isNewUserOnboarding ? 'Quais são seus interesses?' : 'Editar Interesses',
           headerStyle: { backgroundColor: '#1C2A3A' },
           headerTintColor: '#F5F5FF',
-          // MODIFICAÇÃO: Linha inválida removida
-          // headerBackTitleVisible: false, 
         }}
       />
     </Stack.Navigator>
