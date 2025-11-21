@@ -359,16 +359,6 @@ mosaico/
     <td>3ESPF</td>
   </tr>
   <tr>
-    <td>Guilherme Rocha Bianchini</td>
-    <td>97974</td>
-    <td>3ESPF</td>
-  </tr>
-  <tr>
-    <td>Pedro Henrique Pedrosa Tavares</td>
-    <td>97877</td>
-    <td>3ESPF</td>
-  </tr>
-  <tr>
     <td>Rodrigo Brasileiro</td>
     <td>98952</td>
     <td>3ESPF</td>
