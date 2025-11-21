@@ -1,6 +1,7 @@
 {
   "expo": {
     "name": "mosaico",
+    "owner": "mosaico-app-fiap",
     "slug": "mosaico",
     "version": "1.0.0",
     "orientation": "portrait",
