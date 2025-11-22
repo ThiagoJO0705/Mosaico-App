@@ -7,10 +7,10 @@ type Props = NativeStackScreenProps<AuthStackParamList, 'Splash'>;
 
 const SplashScreen: React.FC<Props> = ({ navigation }) => {
   useEffect(() => {
-    // aqui depois a gente coloca a lógica de "já está logado?"
+
     const timer = setTimeout(() => {
-      navigation.replace('Login'); // troca a Splash pelo Login
-    }, 1500); // 1.5s só pra ver a tela bonitinha
+      navigation.replace('Login'); 
+    }, 1500); 
 
     return () => clearTimeout(timer);
   }, [navigation]);

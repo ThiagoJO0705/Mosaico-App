@@ -13,7 +13,7 @@ export type AuthStackParamList = {
   };
 
   AppTabs: undefined;
-  AppRoot: undefined; // ✅ é esse que aponta pro RootNavigator
+  AppRoot: undefined; 
 };
 
 export type AppTabsParamList = {

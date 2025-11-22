@@ -1,8 +1,8 @@
 // src/utils/mosaicConfig.ts
 export const MOSAICO_SEGMENTS = {
-  1: 9,    // M
-  2: 22,   // Escudo
-  3: 50,   // Este mosaico 3 novo
+  1: 9,    
+  2: 22,   
+  3: 50,  
   4: 66,
   5: 150,
 } as const;

@@ -9,7 +9,7 @@ import {
   TouchableOpacity,
   TextInput,
   ScrollView,
-  ActivityIndicator, // Importa o componente de carregamento
+  ActivityIndicator, 
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { TRACKS, TrackArea } from '../data/tracks';
@@ -34,8 +34,7 @@ const TracksListScreen: React.FC = () => {
   const { user } = useUser();
   const navigation = useNavigation<any>();
 
-  // MODIFICAÇÃO PRINCIPAL: Verificação de segurança
-  // Se o usuário não estiver carregado, mostra uma tela de carregamento.
+
   if (!user) {
     return (
       <View style={styles.loadingContainer}>
@@ -44,7 +43,7 @@ const TracksListScreen: React.FC = () => {
     );
   }
 
-  // A partir daqui, 'user' é garantidamente um objeto UserData.
+
   const [search, setSearch] = useState('');
   const [selectedFilter, setSelectedFilter] = useState<(TrackArea | 'Todas')>(
     'Todas',
@@ -124,7 +123,7 @@ const TracksListScreen: React.FC = () => {
           </>
         }
         renderItem={({ item }) => {
-          // Agora é seguro acessar user.trackProgress
+
           const trackProg =
             user.trackProgress[item.id]?.completedLessons ?? 0;
           const percent = Math.round(

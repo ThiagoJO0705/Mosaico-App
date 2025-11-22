@@ -59,11 +59,11 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // MODIFICAÇÃO: Declaramos a função de unsubscribe aqui fora
+
     let unsubscribeFirestore: Unsubscribe | undefined;
 
     const unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser: FirebaseUser | null) => {
-      // Sempre que o estado de auth mudar, primeiro limpamos qualquer listener antigo.
+
       if (unsubscribeFirestore) {
         unsubscribeFirestore();
       }
@@ -71,7 +71,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       if (firebaseUser) {
         const userDocRef = doc(db, 'users', firebaseUser.uid);
         
-        // Atribuímos a nova função de unsubscribe à nossa variável
+
         unsubscribeFirestore = onSnapshot(userDocRef, (doc) => {
           if (doc.exists()) {
             setUser({ uid: doc.id, ...doc.data() } as UserData);
@@ -90,7 +90,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       }
     });
 
-    // A função de limpeza do useEffect principal garante que o listener de auth seja removido
+
     return () => unsubscribeAuth();
   }, []);
 
@@ -105,7 +105,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     const trackData = TRACKS.find((t) => t.id === trackId);
     const userDocRef = doc(db, 'users', user.uid);
     
-    // Atualizações são feitas diretamente no Firestore. O onSnapshot atualizará o estado local.
+
     const newXp = user.xp + (trackData?.rewardXp ?? 10);
     const { currentLevel } = calculateLevelProgress(newXp);
     const currentTrackProgress = user.trackProgress[trackId] ?? { completedLessons: 0 };

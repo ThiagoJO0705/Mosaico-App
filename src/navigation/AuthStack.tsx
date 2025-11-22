@@ -6,7 +6,6 @@ import SplashScreen from '../screens/SplashScreen';
 import LoginScreen from '../screens/LoginScreen';
 import RegisterScreen from '../screens/RegisterScreen';
 import InterestsScreen from '../screens/InterestsScreen';
-import RootNavigator from './RootNavigator';
 
 export type AuthStackParamList = {
   Splash: undefined;

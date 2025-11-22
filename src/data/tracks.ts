@@ -7,7 +7,6 @@ export type TrackArea =
   | 'Dados'
   | 'Liderança'
   | 'Produtividade'
-  // --- 4 NOVAS ÁREAS ---
   | 'Marketing & Vendas'
   | 'Finanças & Investimentos'
   | 'Design & UX'
@@ -33,15 +32,13 @@ const AREA_COLORS: Record<TrackArea, string> = {
   Dados: '#A3E6D5',
   Liderança: '#90CAF9',
   Produtividade: '#FFAB91',
-  // --- CORES DAS NOVAS ÁREAS ---
-  'Marketing & Vendas': '#EC407A', // Pink
-  'Finanças & Investimentos': '#66BB6A', // Green
-  'Design & UX': '#7E57C2', // Deep Purple
-  'Inovação & Empreendedorismo': '#FFA726', // Orange
+  'Marketing & Vendas': '#EC407A', 
+  'Finanças & Investimentos': '#66BB6A', 
+  'Design & UX': '#7E57C2', 
+  'Inovação & Empreendedorismo': '#FFA726', 
 };
 
 export const TRACKS: Track[] = [
-  // --- 20 Trilhas Originais ---
   {
     id: 'ia-fundamentos',
     title: 'Fundamentos de IA',
@@ -283,7 +280,6 @@ export const TRACKS: Track[] = [
     color: AREA_COLORS['Produtividade'],
   },
 
-  // --- 20 NOVAS TRILHAS ---
   {
     id: 'mkt-digital-101',
     title: 'Marketing Digital 101',

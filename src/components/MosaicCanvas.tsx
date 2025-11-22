@@ -6,22 +6,22 @@ import { AreaId } from '../types/models';
 import MosaicSvgM from './MosaicSvgM';
 
 type Props = {
-  stars: number;        // 0–5 (nível do mosaico)
-  pieces: number;       // quantas peças o usuário já ganhou
-  history: AreaId[];    // histórico de áreas (pra escolher cores)
+  stars: number;        
+  pieces: number;       
+  history: AreaId[];    
 };
 
 const PALETTE: Record<AreaId, string> = {
-  IA: '#4DB6AC',            // teal
-  'Soft Skills': '#A3E6D5', // verde-menta
-  ESG: '#D1C4E9',           // lilás
-  Tech: '#FFD54F',          // âmbar
+  IA: '#4DB6AC',           
+  'Soft Skills': '#A3E6D5',
+  ESG: '#D1C4E9',           
+  Tech: '#FFD54F',          
 };
 
 const TOTAL_SEGMENTS = 13;
 
 const MosaicCanvas: React.FC<Props> = ({ stars, pieces, history }) => {
-  // cores baseadas na história (últimas áreas estudadas)
+
   const baseColors =
     history.length > 0
       ? history.map((area) => PALETTE[area])
@@ -30,7 +30,7 @@ const MosaicCanvas: React.FC<Props> = ({ stars, pieces, history }) => {
   const pickColor = (index: number) =>
     baseColors[index % baseColors.length];
 
-  // 👉 Caso 1: Nenhuma peça — M todo cinza
+
   if (pieces === 0) {
     return (
       <View style={styles.wrapper}>
@@ -40,17 +40,17 @@ const MosaicCanvas: React.FC<Props> = ({ stars, pieces, history }) => {
     );
   }
 
-  // 👉 Caso 2: Entre 1 e 13 peças — colorir segmentos 1 a 1
+
   if (pieces > 0 && pieces <= TOTAL_SEGMENTS) {
-    // monta array de cores por segmento
+
     const segmentColors: string[] = [];
 
     for (let i = 0; i < TOTAL_SEGMENTS; i++) {
       if (i < pieces) {
-        // segmento "ativo" ganha cor
+
         segmentColors[i] = pickColor(i);
       } else {
-        // segmento ainda bloqueado fica cinza
+
         segmentColors[i] = '#555555';
       }
     }
@@ -67,8 +67,6 @@ const MosaicCanvas: React.FC<Props> = ({ stars, pieces, history }) => {
     );
   }
 
-  // 👉 Caso 3: Muitas peças — usar formas artísticas (escudo, asas, mandala, cristal)
-  // Aqui usamos apenas `stars` e as cores baseadas na história.
 
   const colors =
     baseColors.length > 0 ? baseColors.slice(-6) : baseColors;

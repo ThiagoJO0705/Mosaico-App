@@ -12,7 +12,7 @@ const MosaicSvg4: React.FC<Props> = ({
   baseColor = '#D9D9D9',
   segmentColors = [],
 }) => {
-  const h = (size * 197) / 397; // proporcional ao viewBox
+  const h = (size * 197) / 397; 
 
   const color = (i: number) => segmentColors[i] ?? baseColor;
 
@@ -24,9 +24,7 @@ const MosaicSvg4: React.FC<Props> = ({
       fill="none"
     >
 
-      {/* ============================ */}
-      {/* ========= M CENTRAL ========= */}
-      {/* ============================ */}
+
 
       {/* 0 */}
       <Path d="M143.5 128C143.5 125.791 145.291 124 147.5 124H159.5C161.709 124 163.5 125.791 163.5 128V148C163.5 150.209 161.709 152 159.5 152H147.5C145.291 152 143.5 150.209 143.5 148V128Z" fill={color(0)} />

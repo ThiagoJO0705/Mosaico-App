@@ -3,7 +3,7 @@ import { TRACKS, Track } from '../data/tracks';
 
 const GEMINI_API_KEY = process.env.EXPO_PUBLIC_GEMINI_API_KEY || 'AIzaSyCHI-ICWv0Fy1L-LYHXM_5i3sBrAcSnXl8';
 
-// Função utilitária: monta o prompt e chama a API
+
 export async function fetchTrackRecommendationsFromGemini(
   interests: string[],
 ): Promise<string[]> {
@@ -12,7 +12,7 @@ export async function fetchTrackRecommendationsFromGemini(
     return [];
   }
 
-  // Vamos mandar uma visão simplificada das trilhas para o modelo
+
   const simplifiedTracks = TRACKS.map((t) => ({
     id: t.id,
     title: t.title,
@@ -64,7 +64,7 @@ Exemplo de resposta:
 
     if (!text) return [];
 
-    // remove ```json ... ``` se vier assim
+
     const cleaned = text
       .replace(/```json/gi, '')
       .replace(/```/g, '')
@@ -80,7 +80,7 @@ Exemplo de resposta:
 
     if (!Array.isArray(parsed)) return [];
 
-    // filtra apenas IDs válidos
+
     const validIds = new Set(TRACKS.map((t) => t.id));
     const trackIds = parsed
       .filter((id: any) => typeof id === 'string' && validIds.has(id));

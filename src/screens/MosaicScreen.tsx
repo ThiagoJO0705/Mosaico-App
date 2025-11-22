@@ -7,7 +7,7 @@ import {
   ScrollView,
   Modal,
   TouchableOpacity,
-  ActivityIndicator, // Importa o componente de carregamento
+  ActivityIndicator, 
 } from "react-native";
 import { useUser } from "../context/UserContext";
 import MosaicRenderer from "../components/MosaicRenderer";
@@ -35,8 +35,7 @@ type MosaicBadge = {
 const MosaicScreen: React.FC = () => {
   const { user } = useUser();
 
-  // MODIFICAÇÃO PRINCIPAL: Verificação de segurança
-  // Se o usuário não estiver carregado, mostra uma tela de carregamento.
+
   if (!user) {
     return (
       <View style={styles.loadingContainer}>
@@ -45,7 +44,7 @@ const MosaicScreen: React.FC = () => {
     );
   }
 
-  // A partir daqui, 'user' é garantidamente um objeto UserData.
+
   const currentIndex = user.currentMosaicIndex as MosaicIndex;
   const currentPieces = user.currentMosaicPieces ?? 0;
   const currentHistory = user.currentMosaicHistory ?? [];

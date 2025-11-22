@@ -1,7 +1,6 @@
 // src/services/firebaseConfig.ts
 import { initializeApp, getApp, getApps } from "firebase/app";
 // @ts-ignore: getReactNativePersistence existe no bundle React Native da SDK,
-// mas não está declarado nas typings do Firebase v12
 import { initializeAuth, getReactNativePersistence } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import AsyncStorage from "@react-native-async-storage/async-storage";

@@ -12,7 +12,7 @@ const MosaicSvg5: React.FC<Props> = ({
   baseColor = '#D9D9D9',
   segmentColors = [],
 }) => {
-  const h = (size * 317) / 320; // proporcional ao viewBox
+  const h = (size * 317) / 320; 
 
   const color = (i: number) => segmentColors[i] ?? baseColor;
 

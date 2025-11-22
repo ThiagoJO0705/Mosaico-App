@@ -23,23 +23,23 @@ import { UserData } from "../context/UserContext";
 
 type Props = NativeStackScreenProps<AuthStackParamList, "Register">;
 
-// Helpers simples de validação
+
 const isValidEmail = (email: string) => /\S+@\S+\.\S+/.test(email);
 const isStrongPassword = (password: string) => password.length >= 6;
 const onlyDigits = (value: string) => value.replace(/\D/g, "");
-const isValidCPF = (cpf: string) => /^\d{11}$/.test(cpf); // 11 dígitos
+const isValidCPF = (cpf: string) => /^\d{11}$/.test(cpf);
 
 const RegisterScreen = ({ navigation }: Props) => {
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");   // 🔹 NOVO
+  const [confirmPassword, setConfirmPassword] = useState("");  
   const [cpf, setCpf] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleNextStep = async () => {
-    // 🔎 Validações por etapa
+
     if (step === 1) {
       const trimmedName = name.trim();
       if (trimmedName.length < 3) {
@@ -85,24 +85,24 @@ const RegisterScreen = ({ navigation }: Props) => {
       }
     }
 
-    // Se ainda não chegou na última etapa, só avança
+
     if (step < 4) {
       setStep((prev) => (prev + 1) as 1 | 2 | 3 | 4);
       return;
     }
 
-    // Etapa 4 (final) → efetiva o cadastro
+
     setLoading(true);
     try {
       const cleanedCpf = onlyDigits(cpf);
       const trimmedEmail = email.trim().toLowerCase();
       const trimmedName = name.trim();
 
-      // 1. Cria o usuário no Firebase Authentication
+
       const userCredential = await createUserWithEmailAndPassword(auth, trimmedEmail, password);
       const firebaseUser = userCredential.user;
 
-      // 2. Dados iniciais do usuário no Firestore
+
       const newUserDoc: Omit<UserData, 'uid'> = {
         name: trimmedName,
         email: trimmedEmail,
@@ -110,7 +110,7 @@ const RegisterScreen = ({ navigation }: Props) => {
         level: 1,
         xp: 0,
         streakDays: 0,
-        interests: [], // Começa com interesses vazios
+        interests: [], 
         recommendedTrackIds: [],
         trackProgress: {},
         currentMosaicIndex: 1,
@@ -121,8 +121,7 @@ const RegisterScreen = ({ navigation }: Props) => {
 
       await setDoc(doc(db, 'users', firebaseUser.uid), newUserDoc);
 
-      // Aqui você ainda manda para a Interests do AuthStack.
-      // (Se depois quiser, podemos tirar isso e deixar o App/RootNavigator cuidar.)
+
       navigation.replace("Interests", {
         form: { name: trimmedName, email: trimmedEmail, password, cpf: cleanedCpf },
       });
@@ -215,7 +214,7 @@ const RegisterScreen = ({ navigation }: Props) => {
               placeholderTextColor="#78909C"
               keyboardType="numeric"
               value={cpf}
-              onChangeText={(text) => setCpf(onlyDigits(text))} // 🔹 só números
+              onChangeText={(text) => setCpf(onlyDigits(text))} 
               returnKeyType="done"
               onSubmitEditing={handleNextStep}
               maxLength={11}

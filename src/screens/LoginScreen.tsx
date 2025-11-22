@@ -11,13 +11,13 @@ import {
   Image,
   Animated,
   ScrollView,
-  Alert, // Importa o Alert
-  ActivityIndicator, // Importa o ActivityIndicator
+  Alert, 
+  ActivityIndicator, 
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { AuthStackParamList } from '../navigation/AuthStack'; // Ajuste o caminho se necessário
-import { signInWithEmailAndPassword } from 'firebase/auth'; // Importa a função de login
-import { auth } from '../services/firebaseConfig'; // Importa a instância do auth
+import { AuthStackParamList } from '../navigation/AuthStack';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../services/firebaseConfig';
 
 const Logo = require('../../assets/logo.png');
 
@@ -26,7 +26,7 @@ type Props = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 const LoginScreen: React.FC<Props> = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false); // Adiciona estado de loading
+  const [loading, setLoading] = useState(false);
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
@@ -39,7 +39,7 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
   }, []);
 
   const handleLogin = async () => {
-    // Validação básica
+
     if (!email || !password) {
       Alert.alert("Campos vazios", "Por favor, preencha seu e-mail e senha.");
       return;
@@ -47,12 +47,11 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
 
     setLoading(true);
     try {
-      // Tenta fazer o login com o Firebase Authentication
+
       await signInWithEmailAndPassword(auth, email.trim(), password);
-      // SUCESSO! Não fazemos mais nada aqui.
-      // O listener onAuthStateChanged no UserContext vai cuidar da navegação.
+
     } catch (error: any) {
-      // Trata os erros mais comuns de login
+
       console.error("Erro de login no Firebase:", error.code);
       if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
         Alert.alert("Erro de Login", "E-mail ou senha incorretos. Por favor, tente novamente.");

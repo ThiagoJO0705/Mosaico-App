@@ -18,7 +18,7 @@ import { MOSAICO_SEGMENTS, MosaicIndex } from '../utils/mosaicConfig';
 import { LEVEL_DATA } from '../utils/xpConfig';
 import { colors } from '../styles/colors';
 
-// Mapeamento de cores para nomes de habilidades
+
 const COLOR_TO_SKILL_LABEL: Record<string, string> = {
   '#4DB6AC': 'Tecnologia', '#D1C4E9': 'Soft Skills', '#FFD54F': 'ESG',
   '#A3E6D5': 'Dados', '#90CAF9': 'Liderança', '#FFAB91': 'Produtividade',
@@ -81,13 +81,13 @@ const PublicProfileScreen = ({ route }: Props) => {
 
   return (
     <ScrollView style={styles.container}>
-      {/* Cabeçalho do Perfil */}
+
       <View style={styles.header}>
         <Text style={styles.name}>{publicUser.name}</Text>
         <Text style={styles.level}>Nível {publicUser.level} · {levelTitle}</Text>
       </View>
 
-      {/* Barra de Habilidades */}
+
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Habilidades em destaque</Text>
         {!hasSkills ? (
@@ -113,7 +113,7 @@ const PublicProfileScreen = ({ route }: Props) => {
         )}
       </View>
 
-      {/* Mosaicos Concluídos */}
+
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Mosaicos Concluídos</Text>
         {(publicUser.mosaicBadges ?? []).length === 0 ? (

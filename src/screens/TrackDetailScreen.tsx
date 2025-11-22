@@ -7,7 +7,7 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  ActivityIndicator, // Importa o componente de carregamento
+  ActivityIndicator, 
 } from 'react-native';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { TRACKS } from '../data/tracks';
@@ -28,8 +28,7 @@ const TrackDetailScreen: React.FC = () => {
     [trackId],
   );
 
-  // MODIFICAÇÃO PRINCIPAL: Adicionamos a verificação de segurança.
-  // Se o usuário ainda não carregou, ou a trilha não foi encontrada, mostramos um estado de carregamento/erro.
+
   if (!user || !track) {
     return (
       <View style={[styles.container, styles.loadingContainer]}>
@@ -44,7 +43,7 @@ const TrackDetailScreen: React.FC = () => {
     );
   }
 
-  // A partir daqui, 'user' e 'track' garantidamente existem.
+
   const trackProg = user.trackProgress[track.id]?.completedLessons ?? 0;
   const percent = Math.round((trackProg / track.totalLessons) * 100);
   const clampedPercent = isNaN(percent) ? 0 : percent;
@@ -52,28 +51,28 @@ const TrackDetailScreen: React.FC = () => {
 
   const handleStartOrContinue = () => {
     if (!isCompleted) {
-      // Só permite completar a aula se a trilha não estiver concluída
+
       completeLesson(track.id);
     }
   };
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      {/* Header simples com "voltar" */}
+
       <View style={styles.headerRow}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Text style={styles.backText}>⟵ Voltar para Trilhas</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Título e área */}
+
       <View style={styles.titleBlock}>
         <Text style={styles.areaText}>{track.area}</Text>
         <Text style={styles.title}>{track.title}</Text>
         <Text style={styles.subtitle}>{track.description}</Text>
       </View>
 
-      {/* Metadados / chips */}
+
       <View style={styles.metaRow}>
         <View style={styles.metaChip}>
           <Text style={styles.metaLabel}>Dificuldade</Text>
@@ -104,7 +103,6 @@ const TrackDetailScreen: React.FC = () => {
         </View>
       </View>
 
-      {/* Progresso na trilha */}
       <View style={styles.progressCard}>
         <Text style={styles.progressTitle}>Seu progresso</Text>
         <Text style={styles.progressSubtitle}>
@@ -125,14 +123,14 @@ const TrackDetailScreen: React.FC = () => {
         </Text>
       </View>
 
-      {/* CTA principal */}
+
       <TouchableOpacity
         style={[
           styles.mainButton,
           isCompleted && styles.mainButtonCompleted,
         ]}
         onPress={handleStartOrContinue}
-        disabled={isCompleted} // Desabilita o botão se a trilha já foi concluída
+        disabled={isCompleted} 
         activeOpacity={0.9}
       >
         <Text
@@ -254,7 +252,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   mainButtonCompleted: {
-    backgroundColor: '#2A3B4C', // Cor diferente para o estado concluído
+    backgroundColor: '#2A3B4C', 
     borderWidth: 1,
     borderColor: '#2E7D32',
   },
@@ -264,7 +262,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   mainButtonTextCompleted: {
-    color: '#A3E6D5', // Cor diferente para o texto
+    color: '#A3E6D5', 
   },
   errorText: {
     color: '#F5F5F5',

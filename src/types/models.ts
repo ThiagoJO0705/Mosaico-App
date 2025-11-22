@@ -25,8 +25,8 @@ export type UserGamification = {
   name: string;
   level: number;
   xp: number;
-  pieces: number; // total de peças
-  piecesHistory: AreaId[]; // histórico sequencial das peças, na ordem que foram conquistadas
+  pieces: number; 
+  piecesHistory: AreaId[]; 
   streak: number;
   badges: BadgeId[];
   progress: UserProgress;

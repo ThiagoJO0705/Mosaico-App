@@ -17,9 +17,9 @@ import MissionsModal, {
 } from "../components/MissionsModal";
 import { calculateLevelProgress } from "../utils/xpConfig";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { RootStackParamList } from "../navigation/RootNavigator"; // Importa a tipagem do navegador principal
+import { RootStackParamList } from "../navigation/RootNavigator"; 
 
-// MODIFICAÇÃO: Usa a tipagem correta para a navegação
+
 type HomeScreenNavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 const HomeScreen: React.FC = () => {
@@ -38,12 +38,12 @@ const HomeScreen: React.FC = () => {
   const levelInfo = calculateLevelProgress(user.xp);
   const allTracks = Array.isArray(TRACKS) ? TRACKS : [];
 
-  // A lógica de recomendação agora vem diretamente do 'user'
+
   const recommendedIds = user.recommendedTrackIds ?? [];
   const recommendedTracks: Track[] =
     recommendedIds.length > 0
       ? allTracks.filter((t) => recommendedIds.includes(t.id))
-      : allTracks.slice(0, 3); // Fallback caso não haja recomendações
+      : allTracks.slice(0, 3); 
 
   const dailyMissions: MissionType[] = [
     {
@@ -81,7 +81,7 @@ const HomeScreen: React.FC = () => {
   return (
     <>
       <ScrollView style={styles.container}>
-        {/* Topo */}
+
         <View style={styles.header}>
           <View style={{ flex: 1 }}>
             <Text style={styles.greeting}>Olá, {user.name}! 👋</Text>
@@ -96,7 +96,7 @@ const HomeScreen: React.FC = () => {
           </View>
         </View>
 
-        {/* XP */}
+
         <View style={styles.xpContainer}>
           <View style={styles.xpHeader}>
             <Text style={styles.xpLabel}>XP para o próximo nível</Text>
@@ -115,7 +115,7 @@ const HomeScreen: React.FC = () => {
           </View>
         </View>
 
-        {/* Card de Streak */}
+
         <View style={styles.streakCard}>
           <Text style={styles.streakIcon}>🔥</Text>
           <Text style={styles.streakTitle}>
@@ -136,7 +136,7 @@ const HomeScreen: React.FC = () => {
           </Text>
         </TouchableOpacity>
 
-        {/* Missões */}
+
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Missões do dia</Text>
@@ -176,7 +176,7 @@ const HomeScreen: React.FC = () => {
           </View>
         </View>
 
-        {/* Trilhas recomendadas */}
+
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Trilhas recomendadas</Text>
           <FlatList
@@ -206,7 +206,7 @@ const HomeScreen: React.FC = () => {
                     {isNaN(percent) ? 0 : percent}%)
                   </Text>
 
-                  {/* MODIFICAÇÃO PRINCIPAL: Botão agora navega para a tela de detalhes */}
+
                   <TouchableOpacity
                     style={styles.trackButton}
                     onPress={() =>

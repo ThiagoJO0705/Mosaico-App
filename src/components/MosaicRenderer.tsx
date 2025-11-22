@@ -16,7 +16,6 @@ type Props = {
   pieces: number;
   history?: string[];
   size?: number;
-  /** se false, não mostra o círculo de glow atrás */
   showGlow?: boolean;
 };
 
@@ -56,7 +55,7 @@ const MosaicRenderer: React.FC<Props> = ({
       break;
   }
 
-  // wrapper e glow proporcionais ao size
+ 
   const wrapperSize = size * 1.3;
   const glowSize = size * 1.15;
 

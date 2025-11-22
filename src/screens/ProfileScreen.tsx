@@ -7,7 +7,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
-  ActivityIndicator, // Importa o componente de carregamento
+  ActivityIndicator,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useUser } from "../context/UserContext";
@@ -24,8 +24,7 @@ const ProfileScreen: React.FC = () => {
   const navigation = useNavigation<ProfileScreenNavigationProp>();
   const { user, logout } = useUser();
 
-  // MODIFICAÇÃO PRINCIPAL: Verificação de segurança
-  // Se o usuário não existir, mostra uma tela de carregamento.
+
   if (!user) {
     return (
       <View style={styles.loadingContainer}>
@@ -34,7 +33,7 @@ const ProfileScreen: React.FC = () => {
     );
   }
 
-  // A partir daqui, 'user' é garantidamente um objeto UserData.
+
   const currentIndex = user.currentMosaicIndex as MosaicIndex;
   const currentPieces = user.currentMosaicPieces;
   const totalSegmentsCurrent = MOSAICO_SEGMENTS[currentIndex];
@@ -96,7 +95,7 @@ const ProfileScreen: React.FC = () => {
       style={styles.container}
       contentContainerStyle={styles.contentContainer}
     >
-      {/* Cabeçalho */}
+
       <View style={styles.header}>
         <View style={{ flex: 1 }}>
           <Text style={styles.greeting}>Olá, {user.name} 👋</Text>
@@ -114,7 +113,7 @@ const ProfileScreen: React.FC = () => {
         </View>
       </View>
 
-      {/* Card principal - resumo do mosaico */}
+
       <TouchableOpacity
         style={styles.mosaicCard}
         activeOpacity={0.9}
@@ -144,7 +143,7 @@ const ProfileScreen: React.FC = () => {
         )}
       </TouchableOpacity>
       
-      {/* Card de Áreas de Interesse */}
+
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Suas áreas de interesse</Text>
@@ -169,7 +168,7 @@ const ProfileScreen: React.FC = () => {
         </View>
       </View>
       
-      {/* Seção: progresso geral */}
+
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Seu progresso</Text>
         <View style={styles.statsRow}>

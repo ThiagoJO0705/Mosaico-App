@@ -4,15 +4,11 @@ import Svg, { Path } from 'react-native-svg';
 
 interface Props {
   size?: number;
-  baseColor?: string;         // cor padrão (cinza)
-  segmentColors?: string[];   // cor específica pra cada pedaço (opcional)
+  baseColor?: string;       
+  segmentColors?: string[];   
 }
 
-/**
- * SVG do mosaico "M" com 13 segmentos.
- * Se segmentColors for fornecido, usa segmentColors[i] pra cada Path.
- * Caso contrário, usa baseColor em todos.
- */
+
 const MosaicSvgM: React.FC<Props> = ({
   size = 140,
   baseColor = '#D9D9D9',

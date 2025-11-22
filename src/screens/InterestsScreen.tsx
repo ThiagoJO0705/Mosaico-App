@@ -25,7 +25,7 @@ const INTEREST_OPTIONS = [
 const InterestsScreen = ({ navigation, route }: Props) => {
   const { user, updateInterestsAndRecommendations } = useUser();
 
-  // ✅ forma segura de detectar editMode (pode não vir params)
+
  
 const isEditMode = (route as any)?.params?.editMode === true;
 
@@ -57,10 +57,10 @@ const handleFinish = async () => {
   await updateInterestsAndRecommendations(selected);
 
   if (isEditMode) {
-    // Edição (veio do Perfil / outra tela do app)
+
     navigation.goBack();
   } else {
-    // Onboarding (primeira vez escolhendo interesses)
+
     (navigation as any).reset({
       index: 0,
       routes: [{ name: 'Tabs' }],
