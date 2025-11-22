@@ -341,6 +341,65 @@ mosaico/
 
 ---
 
+# 🚀 Como Rodar o Projeto
+
+Este projeto foi desenvolvido em **React Native + Expo + EAS Build**.
+
+Siga os passos abaixo para rodar localmente e gerar o build Android.
+
+## 📥 1. Clonar o repositório
+
+```bash
+git clone https://github.com/https://github.com/ThiagoJO0705/Mosaico-App.git
+cd mosaico
+```
+
+## 📦 2. Instalar dependências
+
+```bash
+npm install
+```
+
+## ▶️ 3. Rodar o app localmente (Expo)
+
+```bash
+npx expo start
+```
+
+## 🔑 4. Login no Expo (obrigatório para builds EAS)
+
+```bash
+eas login
+```
+
+## 🛠️ 5. Instalar o EAS CLI (caso não tenha)
+
+```bash
+npm install -g eas-cli
+```
+
+Verificar se instalou:
+
+```bash
+eas --version
+```
+
+## 📱 6. Gerar build Android (Development)
+Antes de gerar o Build, abra um simulador de android no android studio <br>
+Este comando gera um build de desenvolvimento:
+```bash
+eas build --platform android --profile development
+```
+Após gerar o build,  deverá aparecer isso no terminal:
+```bash
+Install and run the Android build on an emulator? (y/n)
+```
+Aperte o y para baixar o app no emulador <br>
+Você está pronto para usar o Mosaico 😄
+
+
+---
+
 # Integrantes
 <table>
   <tr>
